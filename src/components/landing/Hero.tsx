@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import LogoFamilia from "@/components/layout/LogoFamilia"
 
@@ -26,17 +27,19 @@ export default function Hero() {
 
         <div className="flex flex-wrap gap-4 justify-center">
           <Button
+            asChild
             size="lg"
             className="bg-verde-principal hover:bg-verde-oscuro text-white rounded-full px-8"
           >
-            Registrarse Ahora
+            <Link to="/registro">Registrarse Ahora</Link>
           </Button>
           <Button
+            asChild
             size="lg"
             variant="outline"
             className="border-2 border-verde-principal text-verde-principal hover:bg-verde-principal hover:text-white rounded-full px-8"
           >
-            Conocer Más
+            <a href="#caracteristicas">Conocer Más</a>
           </Button>
         </div>
       </div>

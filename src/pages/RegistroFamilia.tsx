@@ -124,7 +124,7 @@ export default function RegistroFamilia() {
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   aria-label="Mostrar contraseña"
                 >
-                  {mostrarPassword ? "🙈" : "👁️"}
+                  {mostrarPassword ? "No mostrar" : "Mostrar"}
                 </button>
               </div>
             </div>
@@ -147,7 +147,7 @@ export default function RegistroFamilia() {
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   aria-label="Mostrar contraseña"
                 >
-                  {mostrarConfirmar ? "🙈" : "👁️"}
+                  {mostrarConfirmar ? "No mostrar" : "Mostrar"}
                 </button>
               </div>
             </div>
