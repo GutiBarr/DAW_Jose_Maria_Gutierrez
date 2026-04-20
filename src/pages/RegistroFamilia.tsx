@@ -5,9 +5,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import LogoFamilia from "@/components/layout/LogoFamilia"
+import { useAuthStore } from "@/store/authStore"
 
 export default function RegistroFamilia() {
   const navigate = useNavigate()
+  const { registrarFamilia, cargando } = useAuthStore()
+
   const [mostrarPassword, setMostrarPassword] = useState(false)
   const [mostrarConfirmar, setMostrarConfirmar] = useState(false)
 
@@ -26,7 +29,7 @@ export default function RegistroFamilia() {
     setError("")
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (formulario.password !== formulario.confirmarPassword) {
@@ -44,14 +47,23 @@ export default function RegistroFamilia() {
       return
     }
 
-    console.log("Registro familia:", formulario)
-    // Aquí irá la llamada a Supabase más adelante
+    const { error } = await registrarFamilia({
+      nombre: formulario.nombre,
+      email: formulario.email,
+      password: formulario.password,
+    })
+
+    if (error) {
+      setError(error)
+      return
+    }
+
+    navigate("/")
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-verde-suave to-white py-12 px-6">
       <div className="max-w-xl mx-auto">
-        {/* Cabecera */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-3 mb-6">
             <div className="bg-gradient-to-br from-verde-principal to-verde-oscuro p-3 rounded-xl">
@@ -68,7 +80,6 @@ export default function RegistroFamilia() {
           </p>
         </div>
 
-        {/* Formulario */}
         <div className="bg-white p-8 rounded-2xl shadow-lg">
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
@@ -167,9 +178,10 @@ export default function RegistroFamilia() {
 
             <Button
               type="submit"
-              className="w-full bg-verde-principal hover:bg-verde-oscuro text-white py-6 text-base font-bold"
+              disabled={cargando}
+              className="w-full bg-verde-principal hover:bg-verde-oscuro text-white py-6 text-base font-bold disabled:opacity-60"
             >
-              Crear cuenta
+              {cargando ? "Creando cuenta..." : "Crear cuenta"}
             </Button>
 
             <div className="flex items-center justify-between text-sm pt-2">

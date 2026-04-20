@@ -5,9 +5,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import LogoFamilia from "@/components/layout/LogoFamilia"
+import { useAuthStore } from "@/store/authStore"
 
 export default function RegistroEntidad() {
   const navigate = useNavigate()
+  const { registrarEntidad, cargando } = useAuthStore()
+
   const [mostrarPassword, setMostrarPassword] = useState(false)
   const [mostrarConfirmar, setMostrarConfirmar] = useState(false)
 
@@ -29,7 +32,7 @@ export default function RegistroEntidad() {
     setError("")
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (formulario.password !== formulario.confirmarPassword) {
@@ -47,14 +50,26 @@ export default function RegistroEntidad() {
       return
     }
 
-    console.log("Registro entidad:", formulario)
-    // Aquí irá la llamada a Supabase más adelante
+    const { error } = await registrarEntidad({
+      nombreEntidad: formulario.nombreEntidad,
+      cif: formulario.cif,
+      personaContacto: formulario.personaContacto,
+      telefono: formulario.telefono,
+      email: formulario.email,
+      password: formulario.password,
+    })
+
+    if (error) {
+      setError(error)
+      return
+    }
+
+    navigate("/")
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-verde-suave to-white py-12 px-6">
       <div className="max-w-xl mx-auto">
-        {/* Cabecera */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-3 mb-6">
             <div className="bg-gradient-to-br from-verde-principal to-verde-oscuro p-3 rounded-xl">
@@ -71,10 +86,8 @@ export default function RegistroEntidad() {
           </p>
         </div>
 
-        {/* Formulario */}
         <div className="bg-white p-8 rounded-2xl shadow-lg">
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Datos de la entidad */}
             <div>
               <h3 className="text-lg font-bold text-verde-oscuro mb-4">
                 Datos de la entidad
@@ -107,7 +120,6 @@ export default function RegistroEntidad() {
               </div>
             </div>
 
-            {/* Datos de contacto */}
             <div className="pt-4 border-t border-border">
               <h3 className="text-lg font-bold text-verde-oscuro mb-4">
                 Persona de contacto
@@ -140,7 +152,6 @@ export default function RegistroEntidad() {
               </div>
             </div>
 
-            {/* Acceso */}
             <div className="pt-4 border-t border-border">
               <h3 className="text-lg font-bold text-verde-oscuro mb-4">
                 Datos de acceso
@@ -207,7 +218,6 @@ export default function RegistroEntidad() {
               </div>
             </div>
 
-            {/* Términos */}
             <div className="flex items-start gap-2 pt-2">
               <Checkbox
                 id="terminos"
@@ -234,9 +244,10 @@ export default function RegistroEntidad() {
 
             <Button
               type="submit"
-              className="w-full bg-verde-principal hover:bg-verde-oscuro text-white py-6 text-base font-bold"
+              disabled={cargando}
+              className="w-full bg-verde-principal hover:bg-verde-oscuro text-white py-6 text-base font-bold disabled:opacity-60"
             >
-              Registrar entidad
+              {cargando ? "Creando cuenta..." : "Registrar entidad"}
             </Button>
 
             <div className="flex items-center justify-between text-sm pt-2">

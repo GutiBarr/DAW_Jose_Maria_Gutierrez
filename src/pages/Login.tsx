@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -6,14 +6,31 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import LogoFamilia from "@/components/layout/LogoFamilia"
 import { useState } from "react"
+import { useAuthStore } from "@/store/authStore"
 
 export default function Login() {
+  const navigate = useNavigate()
+  const { iniciarSesion, cargando } = useAuthStore()
+
   const [mostrarPassword, setMostrarPassword] = useState(false)
   const [tipoUsuario, setTipoUsuario] = useState("familia")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [error, setError] = useState("")
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log("Login:", { tipoUsuario })
+    setError("")
+
+    const { error } = await iniciarSesion({ email, password })
+
+    if (error) {
+      setError(error)
+      return
+    }
+
+    // Login correcto
+    navigate("/")
   }
 
   return (
@@ -64,7 +81,6 @@ export default function Login() {
             </p>
           </div>
 
-          {/* Selector tipo usuario */}
           <Tabs value={tipoUsuario} onValueChange={setTipoUsuario} className="mb-6">
             <TabsList className="grid w-full grid-cols-3 h-auto p-1 bg-muted">
               <TabsTrigger value="familia" className="py-3">Familia</TabsTrigger>
@@ -80,6 +96,8 @@ export default function Login() {
                 id="email"
                 type="email"
                 placeholder="tu@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
@@ -91,6 +109,8 @@ export default function Login() {
                   id="password"
                   type={mostrarPassword ? "text" : "password"}
                   placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   required
                   className="pr-10"
                 />
@@ -120,14 +140,20 @@ export default function Login() {
               </Link>
             </div>
 
+            {error && (
+              <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-lg">
+                {error}
+              </div>
+            )}
+
             <Button
               type="submit"
-              className="w-full bg-verde-principal hover:bg-verde-oscuro text-white py-6 text-base font-bold"
+              disabled={cargando}
+              className="w-full bg-verde-principal hover:bg-verde-oscuro text-white py-6 text-base font-bold disabled:opacity-60"
             >
-              Iniciar Sesión
+              {cargando ? "Iniciando sesión..." : "Iniciar Sesión"}
             </Button>
 
-            {/* Divisor */}
             <div className="flex items-center gap-4 my-6">
               <div className="flex-1 border-t border-border" />
               <span className="text-sm text-muted-foreground">o continúa con</span>
