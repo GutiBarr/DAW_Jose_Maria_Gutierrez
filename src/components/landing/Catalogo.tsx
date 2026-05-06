@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { useAuthStore } from "@/store/authStore"
 import { useServicioStore } from "@/store/servicioStore"
+import { useLangStore } from "@/store/langStore"
 import type { Servicio, TipoServicio } from "@/interfaces/Servicio"
 import { useT } from "@/i18n/useT"
 import { TIPOS_SERVICIO } from "@/lib/constants"
@@ -9,7 +10,8 @@ import { TIPOS_SERVICIO } from "@/lib/constants"
 
 export default function Catalogo() {
   const { usuario } = useAuthStore()
-  const { resultados, cargandoBusqueda, buscarServicios } = useServicioStore()
+  const { resultados, cargandoBusqueda, buscarServicios, incrementarVisitas } = useServicioStore()
+  const { lang } = useLangStore()
   const navigate = useNavigate()
   const t = useT()
 
@@ -28,8 +30,8 @@ export default function Catalogo() {
     debounceRef.current = setTimeout(() => buscarServicios({ nombre: n, tipo: tp, ubicacion: ub }), 400)
   }
 
-  const handleNombre = (v: string) => { setNombre(v); triggerBusqueda(v, tipo, ubicacion) }
-  const handleTipo   = (v: TipoServicio | "") => { setTipo(v); triggerBusqueda(nombre, v, ubicacion) }
+  const handleNombre    = (v: string) => { setNombre(v); triggerBusqueda(v, tipo, ubicacion) }
+  const handleTipo      = (v: TipoServicio | "") => { setTipo(v); triggerBusqueda(nombre, v, ubicacion) }
   const handleUbicacion = (v: string) => { setUbicacion(v); triggerBusqueda(nombre, tipo, v) }
 
   // Cerrar modal con Escape
@@ -50,6 +52,12 @@ export default function Catalogo() {
     setUbicacion("")
     buscarServicios({})
     if (debounceRef.current) clearTimeout(debounceRef.current)
+  }
+
+  // Abre el modal e incrementa visitas
+  const handleVerDetalle = (s: Servicio) => {
+    setDetalle(s)
+    incrementarVisitas(s.id)
   }
 
   const handleSolicitar = (servicio: Servicio) => {
@@ -198,18 +206,30 @@ export default function Catalogo() {
                         </svg>
                         {s.telefono}
                       </span>
+                      {s.plazas !== null && (
+                        <span className={`flex items-center gap-1.5 font-medium ${s.plazas === 0 ? "text-red-500" : "text-emerald-500"}`}>
+                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                            <circle cx="6" cy="4" r="2.5" stroke="currentColor" strokeWidth="1.2"/>
+                            <path d="M1.5 10.5c0-2.485 2.015-4.5 4.5-4.5s4.5 2.015 4.5 4.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+                          </svg>
+                          {s.plazas === 0
+                            ? (lang === "es" ? "Sin plazas disponibles" : "No spots available")
+                            : `${s.plazas} ${lang === "es" ? "plazas disponibles" : "spots available"}`}
+                        </span>
+                      )}
                     </div>
 
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => setDetalle(s)}
+                        onClick={() => handleVerDetalle(s)}
                         className="flex-1 px-3 py-2 rounded-lg border border-border hover:border-border-strong text-muted-foreground hover:text-foreground text-xs font-medium transition-colors"
                       >
                         {t.catalogo.verDetalle}
                       </button>
                       <button
                         onClick={() => handleSolicitar(s)}
-                        className="flex-1 px-3 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white text-xs font-medium transition-colors"
+                        disabled={s.plazas === 0}
+                        className="flex-1 px-3 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white text-xs font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         {t.catalogo.solicitarPlaza}
                       </button>
@@ -281,12 +301,25 @@ export default function Catalogo() {
                 <div className="flex items-center gap-2">
                   <span>📞</span><span>{detalle.telefono}</span>
                 </div>
+                {detalle.plazas !== null && (
+                  <div className={`flex items-center gap-2 font-medium ${detalle.plazas === 0 ? "text-red-500" : "text-emerald-500"}`}>
+                    <span>🪑</span>
+                    <span>
+                      {detalle.plazas === 0
+                        ? (lang === "es" ? "Sin plazas disponibles" : "No spots available")
+                        : `${detalle.plazas} ${lang === "es" ? "plazas disponibles" : "spots available"}`}
+                    </span>
+                  </div>
+                )}
               </div>
               <button
                 onClick={() => { setDetalle(null); handleSolicitar(detalle) }}
-                className="w-full py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-semibold transition-colors"
+                disabled={detalle.plazas === 0}
+                className="w-full py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                {t.catalogo.solicitarPlaza}
+                {detalle.plazas === 0
+                  ? (lang === "es" ? "Sin plazas disponibles" : "No spots available")
+                  : t.catalogo.solicitarPlaza}
               </button>
             </div>
           </div>

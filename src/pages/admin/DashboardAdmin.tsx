@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { useAuthStore } from "@/store/authStore"
 import { useAdminStore } from "@/store/adminStore"
+import { usePerfilStore } from "@/store/perfilStore"
 import type { Perfil } from "@/interfaces/Perfil"
 import type { Servicio } from "@/interfaces/Servicio"
 import type { RolUsuario } from "@/interfaces/Usuario"
@@ -26,6 +27,7 @@ export default function DashboardAdmin() {
     cargarPerfiles, cambiarRol, toggleActivoUsuario, eliminarUsuario,
     cargarTodosServicios, eliminarServicio, toggleActivoServicio,
   } = useAdminStore()
+  const { perfil, cargarPerfil } = usePerfilStore()
   const { theme, toggleTheme } = useThemeStore()
   const { lang, toggleLang } = useLangStore()
   const t = useT()
@@ -36,9 +38,10 @@ export default function DashboardAdmin() {
   useEffect(() => {
     cargarPerfiles()
     cargarTodosServicios()
+    cargarPerfil()
   }, [])
 
-  const handleLogout = () => { cerrarSesion() }
+  const nombreAdmin = perfil?.nombre ?? usuario?.email ?? ""
 
   const totalFamilias  = perfiles.filter((p) => p.rol === "familia").length
   const totalEntidades = perfiles.filter((p) => p.rol === "entidad").length
@@ -56,12 +59,12 @@ export default function DashboardAdmin() {
 
   const modalConfig = confirm ? {
     "eliminar-usuario": {
-      titulo:   lang === "es" ? "Eliminar cuenta" : "Delete account",
-      desc:     lang === "es"
+      titulo:    lang === "es" ? "Eliminar cuenta" : "Delete account",
+      desc:      lang === "es"
         ? `¿Estás seguro de que quieres eliminar la cuenta de "${confirm.nombre}"? Esta acción no se puede deshacer y eliminará también todos sus servicios.`
         : `Are you sure you want to delete "${confirm.nombre}"'s account? This action cannot be undone and will also delete all their services.`,
-      btnColor: "bg-red-500 hover:bg-red-600 text-white",
-      btnLabel: lang === "es" ? "Sí, eliminar" : "Yes, delete",
+      btnColor:  "bg-red-500 hover:bg-red-600 text-white",
+      btnLabel:  lang === "es" ? "Sí, eliminar" : "Yes, delete",
       iconColor: "bg-red-500/10",
       icon: (
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="text-red-500">
@@ -70,12 +73,12 @@ export default function DashboardAdmin() {
       ),
     },
     "desactivar-usuario": {
-      titulo:   lang === "es" ? "Desactivar cuenta" : "Deactivate account",
-      desc:     lang === "es"
+      titulo:    lang === "es" ? "Desactivar cuenta" : "Deactivate account",
+      desc:      lang === "es"
         ? `¿Estás seguro de que quieres desactivar la cuenta de "${confirm.nombre}"? Sus servicios dejarán de aparecer en el catálogo.`
         : `Are you sure you want to deactivate "${confirm.nombre}"'s account? Their services will be hidden from the catalog.`,
-      btnColor: "bg-amber-500 hover:bg-amber-600 text-white",
-      btnLabel: lang === "es" ? "Sí, desactivar" : "Yes, deactivate",
+      btnColor:  "bg-amber-500 hover:bg-amber-600 text-white",
+      btnLabel:  lang === "es" ? "Sí, desactivar" : "Yes, deactivate",
       iconColor: "bg-amber-500/10",
       icon: (
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="text-amber-500">
@@ -85,12 +88,12 @@ export default function DashboardAdmin() {
       ),
     },
     "eliminar-servicio": {
-      titulo:   lang === "es" ? "Eliminar servicio" : "Delete service",
-      desc:     lang === "es"
+      titulo:    lang === "es" ? "Eliminar servicio" : "Delete service",
+      desc:      lang === "es"
         ? `¿Estás seguro de que quieres eliminar el servicio "${confirm.nombre}"? Esta acción no se puede deshacer.`
         : `Are you sure you want to delete the service "${confirm.nombre}"? This action cannot be undone.`,
-      btnColor: "bg-red-500 hover:bg-red-600 text-white",
-      btnLabel: lang === "es" ? "Sí, eliminar" : "Yes, delete",
+      btnColor:  "bg-red-500 hover:bg-red-600 text-white",
+      btnLabel:  lang === "es" ? "Sí, eliminar" : "Yes, delete",
       iconColor: "bg-red-500/10",
       icon: (
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="text-red-500">
@@ -103,7 +106,7 @@ export default function DashboardAdmin() {
   return (
     <div className="min-h-screen bg-background">
 
-      {/* ── MODAL DE CONFIRMACIÓN ── */}
+      {/* Modal confirmación */}
       {confirm && modalConfig && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setConfirm(null)} />
@@ -114,16 +117,12 @@ export default function DashboardAdmin() {
             <h3 className="text-lg font-bold text-foreground mb-2">{modalConfig.titulo}</h3>
             <p className="text-sm text-muted-foreground leading-relaxed mb-6">{modalConfig.desc}</p>
             <div className="flex gap-3 justify-end">
-              <button
-                onClick={() => setConfirm(null)}
-                className="px-5 py-2.5 rounded-xl border border-border hover:border-border-strong text-muted-foreground hover:text-foreground text-sm font-medium transition-colors"
-              >
+              <button onClick={() => setConfirm(null)}
+                className="px-5 py-2.5 rounded-xl border border-border hover:border-border-strong text-muted-foreground hover:text-foreground text-sm font-medium transition-colors">
                 {lang === "es" ? "Cancelar" : "Cancel"}
               </button>
-              <button
-                onClick={handleConfirm}
-                className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-colors shadow-sm ${modalConfig.btnColor}`}
-              >
+              <button onClick={handleConfirm}
+                className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-colors shadow-sm ${modalConfig.btnColor}`}>
                 {modalConfig.btnLabel}
               </button>
             </div>
@@ -156,17 +155,23 @@ export default function DashboardAdmin() {
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-violet-500/10 text-violet-500 text-xs font-medium border border-violet-500/20">
               Admin
             </span>
-            <Link to="/perfil" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
-              {usuario?.email}
+            <Link to="/perfil" className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border hover:border-border-strong transition-colors">
+              {perfil?.avatar_url ? (
+                <img src={perfil.avatar_url} alt={nombreAdmin} className="w-5 h-5 rounded-full object-cover ring-1 ring-border" />
+              ) : (
+                <div className="w-5 h-5 rounded-full bg-violet-500/20 flex items-center justify-center text-xs text-violet-500 font-medium">
+                  {nombreAdmin.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <span className="text-xs text-muted-foreground hidden sm:block">{nombreAdmin}</span>
             </Link>
-            <button onClick={handleLogout} className="px-3 py-1.5 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+            <button onClick={() => cerrarSesion()} className="px-3 py-1.5 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
               {t.nav.salir}
             </button>
           </div>
         </div>
       </header>
 
-      {/* Error banner */}
       {adminError && (
         <div className="max-w-7xl mx-auto px-6 lg:px-8 pt-4">
           <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 text-red-500 text-xs px-4 py-2.5 rounded-lg">
@@ -190,10 +195,10 @@ export default function DashboardAdmin() {
         {/* KPIs */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
           {[
-            { label: t.dashAdmin.usuarios,  value: perfiles.length },
-            { label: lang === "es" ? "Familias" : "Families", value: totalFamilias },
-            { label: t.dashAdmin.entidades, value: totalEntidades },
-            { label: t.dashAdmin.servicios, value: totalActivos },
+            { label: t.dashAdmin.usuarios,                             value: perfiles.length },
+            { label: lang === "es" ? "Familias" : "Families",         value: totalFamilias },
+            { label: t.dashAdmin.entidades,                            value: totalEntidades },
+            { label: t.dashAdmin.servicios,                            value: totalActivos },
           ].map((kpi) => (
             <div key={kpi.label} className="bg-card border border-border rounded-xl p-5">
               <div className="text-2xl font-semibold text-foreground mb-0.5">{kpi.value}</div>
@@ -208,8 +213,7 @@ export default function DashboardAdmin() {
             <button key={p} onClick={() => setPestaña(p)}
               className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
                 pestaña === p ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
+              }`}>
               {p === "usuarios"
                 ? `${t.dashAdmin.usuarios} (${perfiles.length})`
                 : `${t.dashAdmin.servicios} (${servicios.length})`}
@@ -223,7 +227,6 @@ export default function DashboardAdmin() {
           </div>
         ) : pestaña === "usuarios" ? (
 
-          /* ── TABLA USUARIOS ── */
           <div className="bg-card border border-border rounded-xl overflow-hidden">
             <table className="w-full text-sm">
               <thead>
@@ -249,12 +252,10 @@ export default function DashboardAdmin() {
                       <div className="text-xs text-muted-foreground truncate max-w-[200px]">{p.email}</div>
                     </td>
                     <td className="px-5 py-3.5">
-                      <select
-                        value={p.rol}
+                      <select value={p.rol}
                         onChange={(e) => cambiarRol(p.id, e.target.value as RolUsuario)}
                         disabled={p.id === usuario?.id}
-                        className="text-xs border border-border rounded-lg px-2 py-1 bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
+                        className="text-xs border border-border rounded-lg px-2 py-1 bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                         {ROLES.map((r) => <option key={r}>{r}</option>)}
                       </select>
                     </td>
@@ -273,24 +274,20 @@ export default function DashboardAdmin() {
                         {p.id !== usuario?.id && p.activo && (
                           <button
                             onClick={() => setConfirm({ tipo: "desactivar-usuario", id: p.id, nombre: p.nombre ?? p.nombre_entidad ?? p.email })}
-                            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/25 hover:border-amber-500/40 transition-colors"
-                          >
+                            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/25 hover:border-amber-500/40 transition-colors">
                             {t.dashAdmin.desactivar}
                           </button>
                         )}
                         {p.id !== usuario?.id && !p.activo && (
-                          <button
-                            onClick={() => toggleActivoUsuario(p.id, true)}
-                            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 hover:border-emerald-500/40 transition-colors"
-                          >
+                          <button onClick={() => toggleActivoUsuario(p.id, true)}
+                            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 hover:border-emerald-500/40 transition-colors">
                             {t.dashAdmin.activar}
                           </button>
                         )}
                         {p.id !== usuario?.id && (
                           <button
                             onClick={() => setConfirm({ tipo: "eliminar-usuario", id: p.id, nombre: p.nombre ?? p.nombre_entidad ?? p.email })}
-                            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/25 hover:border-red-500/40 transition-colors"
-                          >
+                            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/25 hover:border-red-500/40 transition-colors">
                             {lang === "es" ? "Eliminar" : "Delete"}
                           </button>
                         )}
@@ -312,7 +309,6 @@ export default function DashboardAdmin() {
 
         ) : (
 
-          /* ── TABLA SERVICIOS ── */
           <div className="bg-card border border-border rounded-xl overflow-hidden">
             <table className="w-full text-sm">
               <thead>
@@ -347,20 +343,16 @@ export default function DashboardAdmin() {
                     </td>
                     <td className="px-5 py-3.5">
                       <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => toggleActivoServicio(s.id, !s.activo)}
+                        <button onClick={() => toggleActivoServicio(s.id, !s.activo)}
                           className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
                             s.activo
                               ? "bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/25 hover:border-amber-500/40"
                               : "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/25 hover:border-emerald-500/40"
-                          }`}
-                        >
+                          }`}>
                           {s.activo ? t.dashAdmin.desactivar : t.dashAdmin.activar}
                         </button>
-                        <button
-                          onClick={() => setConfirm({ tipo: "eliminar-servicio", id: s.id, nombre: s.nombre })}
-                          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/25 hover:border-red-500/40 transition-colors"
-                        >
+                        <button onClick={() => setConfirm({ tipo: "eliminar-servicio", id: s.id, nombre: s.nombre })}
+                          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/25 hover:border-red-500/40 transition-colors">
                           {lang === "es" ? "Eliminar" : "Delete"}
                         </button>
                       </div>

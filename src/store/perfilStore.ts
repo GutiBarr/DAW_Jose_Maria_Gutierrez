@@ -13,12 +13,15 @@ interface PerfilState {
   cargarPerfil:     () => Promise<void>
   actualizarPerfil: (datos: DatosActualizarPerfil) => Promise<{ error?: string }>
   subirAvatar:      (archivo: File, userId: string) => Promise<{ url?: string; error?: string }>
+  reset:            () => void
 }
 
 export const usePerfilStore = create<PerfilState>()((set) => ({
   perfil:   null,
   cargando: false,
   error:    null,
+
+  reset: () => set({ perfil: null, cargando: false, error: null }),
 
   cargarPerfil: async () => {
     set({ cargando: true, error: null })
@@ -60,4 +63,4 @@ export const usePerfilStore = create<PerfilState>()((set) => ({
       return { error: "Error al subir la imagen" }
     }
   },
-}))
+}))

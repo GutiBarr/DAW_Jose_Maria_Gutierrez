@@ -38,33 +38,33 @@ export class SupabaseServicioRepository implements ServicioRepository {
   }
 
   async buscarServicios(filtros: FiltrosServicio): Promise<Servicio[]> {
-  let query = supabase
-    .from("servicios")
-    .select("*")
-    .eq("activo", true)
-    .order("created_at", { ascending: false })
+    let query = supabase
+      .from("servicios")
+      .select("*")
+      .eq("activo", true)
+      .order("created_at", { ascending: false })
 
-  if (filtros.tipo && filtros.tipo !== "") {
-    query = query.eq("tipo", filtros.tipo)
+    if (filtros.tipo && filtros.tipo !== "") {
+      query = query.eq("tipo", filtros.tipo)
+    }
+
+    if (filtros.ubicacion && filtros.ubicacion.trim() !== "") {
+      query = query.ilike("ubicacion", `%${filtros.ubicacion.trim()}%`)
+    }
+
+    if (filtros.nombre && filtros.nombre.trim() !== "") {
+      query = query.ilike("nombre", `%${filtros.nombre.trim()}%`)
+    }
+
+    const { data, error } = await query
+
+    if (error) {
+      console.error("buscarServicios:", error)
+      return []
+    }
+
+    return data as Servicio[]
   }
-
-  if (filtros.ubicacion && filtros.ubicacion.trim() !== "") {
-    query = query.ilike("ubicacion", `%${filtros.ubicacion.trim()}%`)
-  }
-
-  if (filtros.nombre && filtros.nombre.trim() !== "") {
-    query = query.ilike("nombre", `%${filtros.nombre.trim()}%`)
-  }
-
-  const { data, error } = await query
-
-  if (error) {
-    console.error("buscarServicios:", error)
-    return []
-  }
-
-  return data as Servicio[]
-}
 
   async crearServicio(datos: DatosCrearServicio) {
     const { data: { user } } = await supabase.auth.getUser()
@@ -124,5 +124,12 @@ export class SupabaseServicioRepository implements ServicioRepository {
     }
 
     return {}
+  }
+
+  async incrementarVisitas(id: string): Promise<void> {
+    const { error } = await supabase.rpc("incrementar_visitas", { servicio_id: id })
+    if (error) {
+      console.error("incrementarVisitas:", error)
+    }
   }
 }

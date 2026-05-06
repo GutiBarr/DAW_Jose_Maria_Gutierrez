@@ -5,20 +5,23 @@ import { createSolicitudRepository } from "@/database/repositories"
 const solicitudRepo = createSolicitudRepository()
 
 interface SolicitudState {
-  solicitudes:      Solicitud[]
-  cargando:         boolean
-  error:            string | null
+  solicitudes: Solicitud[]
+  cargando:    boolean
+  error:       string | null
 
   crearSolicitud:           (datos: DatosCrearSolicitud) => Promise<{ error?: string }>
   cargarMisSolicitudes:     () => Promise<void>
   cargarSolicitudesEntidad: () => Promise<void>
   responderSolicitud:       (id: string, datos: DatosResponderSolicitud) => Promise<{ error?: string }>
+  reset:                    () => void
 }
 
 export const useSolicitudStore = create<SolicitudState>()((set, get) => ({
   solicitudes: [],
   cargando:    false,
   error:       null,
+
+  reset: () => set({ solicitudes: [], cargando: false, error: null }),
 
   crearSolicitud: async (datos) => {
     set({ cargando: true, error: null })
@@ -82,4 +85,4 @@ export const useSolicitudStore = create<SolicitudState>()((set, get) => ({
       return { error: msg }
     }
   },
-}))
+}))

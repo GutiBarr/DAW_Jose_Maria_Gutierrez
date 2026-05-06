@@ -3,6 +3,7 @@ import { Link } from "react-router-dom"
 import { useAuthStore } from "@/store/authStore"
 import { useServicioStore } from "@/store/servicioStore"
 import { useSolicitudStore } from "@/store/solicitudStore"
+import { usePerfilStore } from "@/store/perfilStore"
 import type { Servicio, DatosCrearServicio, TipoServicio } from "@/interfaces/Servicio"
 import type { Solicitud, DatosResponderSolicitud } from "@/interfaces/Solicitud"
 import LogoFamilia from "../../components/layout/LogoFamilia"
@@ -30,25 +31,27 @@ export default function DashboardEntidad() {
   const {
     servicios, cargando: cargandoServicios,
     cargarMisServicios, crearServicio, eliminarServicio, toggleActivo, subirImagen,
+    actualizarServicio,
   } = useServicioStore()
   const {
     solicitudes, cargando: cargandoSolicitudes,
     cargarSolicitudesEntidad, responderSolicitud,
   } = useSolicitudStore()
+  const { perfil, cargarPerfil } = usePerfilStore()
   const { theme, toggleTheme } = useThemeStore()
   const { lang, toggleLang } = useLangStore()
   const t = useT()
 
-  const [pestaña, setPestaña]                 = useState<Pestaña>("servicios")
-  const [mostrarForm, setMostrarForm]         = useState(false)
-  const [form, setForm]                       = useState<DatosCrearServicio>(FORM_VACIO)
-  const [archivoImagen, setArchivoImagen]     = useState<File | null>(null)
-  const [previstaImagen, setPrevistaImagen]   = useState("")
-  const [errorForm, setErrorForm]             = useState("")
-  const [guardando, setGuardando]             = useState(false)
-  const [confirmEliminar, setConfirmEliminar] = useState<string | null>(null)
-  const [solicitudActiva, setSolicitudActiva] = useState<Solicitud | null>(null)
-  const [respuesta, setRespuesta]             = useState({ estado: "aceptada" as "aceptada" | "rechazada", mensaje: "" })
+  const [pestaña, setPestaña]                   = useState<Pestaña>("servicios")
+  const [mostrarForm, setMostrarForm]           = useState(false)
+  const [form, setForm]                         = useState<DatosCrearServicio>(FORM_VACIO)
+  const [archivoImagen, setArchivoImagen]       = useState<File | null>(null)
+  const [previstaImagen, setPrevistaImagen]     = useState("")
+  const [errorForm, setErrorForm]               = useState("")
+  const [guardando, setGuardando]               = useState(false)
+  const [confirmEliminar, setConfirmEliminar]   = useState<string | null>(null)
+  const [solicitudActiva, setSolicitudActiva]   = useState<Solicitud | null>(null)
+  const [respuesta, setRespuesta]               = useState({ estado: "aceptada" as "aceptada" | "rechazada", mensaje: "" })
   const [guardandoRespuesta, setGuardandoRespuesta] = useState(false)
   const [editandoServicio, setEditandoServicio] = useState<Servicio | null>(null)
   const [formEditar, setFormEditar]             = useState<DatosCrearServicio>(FORM_VACIO)
@@ -57,11 +60,10 @@ export default function DashboardEntidad() {
   useEffect(() => {
     cargarMisServicios()
     cargarSolicitudesEntidad()
+    cargarPerfil()
   }, [])
 
-  const handleLogout = () => {
-    cerrarSesion()
-  }
+  const nombreEntidad = perfil?.nombre_entidad ?? usuario?.nombreEntidad ?? ""
 
   const setField = (k: keyof DatosCrearServicio, v: string) => {
     setForm({ ...form, [k]: v })
@@ -108,10 +110,17 @@ export default function DashboardEntidad() {
     if (!editandoServicio) return
     setGuardandoEdicion(true)
     await actualizarServicio(editandoServicio.id, formEditar)
-    // Recargar para reflejar el nuevo estado (plazas, etc.)
     cargarMisServicios()
     setGuardandoEdicion(false)
     setEditandoServicio(null)
+  }
+
+  const handleAbrirRespuesta = (s: Solicitud) => {
+    setSolicitudActiva(s)
+    setRespuesta({
+      estado:  s.estado === "pendiente" ? "aceptada" : s.estado as "aceptada" | "rechazada",
+      mensaje: s.mensaje_respuesta ?? "",
+    })
   }
 
   const handleResponder = async (e: React.FormEvent) => {
@@ -132,7 +141,7 @@ export default function DashboardEntidad() {
 
   const estadoLabel = (e: string) => {
     if (e === "pendiente") return t.dashEntidad.pendienteLabel
-    if (e === "aceptada") return t.dashEntidad.aceptadaLabel
+    if (e === "aceptada")  return t.dashEntidad.aceptadaLabel
     return t.dashEntidad.rechazadaLabel
   }
 
@@ -163,14 +172,18 @@ export default function DashboardEntidad() {
               {lang === "es" ? "EN" : "ES"}
             </button>
             <Link to="/perfil" className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border hover:border-border-strong transition-colors">
-              <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-xs text-muted-foreground font-medium">
-                {usuario?.nombreEntidad?.charAt(0).toUpperCase()}
-              </div>
+              {perfil?.avatar_url ? (
+                <img src={perfil.avatar_url} alt={nombreEntidad} className="w-5 h-5 rounded-full object-cover ring-1 ring-border" />
+              ) : (
+                <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-xs text-muted-foreground font-medium">
+                  {nombreEntidad.charAt(0).toUpperCase()}
+                </div>
+              )}
               <span className="text-xs text-muted-foreground hidden sm:block max-w-[120px] truncate">
-                {usuario?.nombreEntidad}
+                {nombreEntidad}
               </span>
             </Link>
-            <button onClick={handleLogout} className="px-3 py-1.5 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+            <button onClick={() => cerrarSesion()} className="px-3 py-1.5 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
               {t.nav.salir}
             </button>
           </div>
@@ -178,10 +191,9 @@ export default function DashboardEntidad() {
       </header>
 
       <main className="max-w-6xl mx-auto px-6 lg:px-8 py-10">
-        {/* Título */}
         <div className="flex items-start justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-semibold text-foreground mb-1">{usuario?.nombreEntidad}</h1>
+            <h1 className="text-2xl font-semibold text-foreground mb-1">{nombreEntidad}</h1>
             <p className="text-sm text-muted-foreground">
               {lang === "es" ? "Gestiona tus servicios y solicitudes recibidas" : "Manage your services and received requests"}
             </p>
@@ -199,10 +211,10 @@ export default function DashboardEntidad() {
         {/* KPIs */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
           {[
-            { label: t.dashEntidad.misServicios,       value: servicios.length },
-            { label: t.dashAdmin.activo,               value: servicios.filter((s) => s.activo).length },
+            { label: t.dashEntidad.misServicios,         value: servicios.length },
+            { label: t.dashAdmin.activo,                 value: servicios.filter((s) => s.activo).length },
             { label: t.dashEntidad.solicitudesRecibidas, value: solicitudes.length },
-            { label: t.dashFamilia.pendientes,         value: pendientes, highlight: pendientes > 0 },
+            { label: t.dashFamilia.pendientes,           value: pendientes, highlight: pendientes > 0 },
           ].map((kpi) => (
             <div key={kpi.label} className="bg-card border border-border rounded-xl p-5">
               <div className={`text-2xl font-semibold mb-0.5 ${kpi.highlight ? "text-amber-500" : "text-foreground"}`}>
@@ -220,9 +232,7 @@ export default function DashboardEntidad() {
               key={p}
               onClick={() => setPestaña(p)}
               className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
-                pestaña === p
-                  ? "bg-muted text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
+                pestaña === p ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground"
               }`}
             >
               {p === "solicitudes" ? t.dashEntidad.solicitudesRecibidas : t.dashEntidad.misServicios}
@@ -238,7 +248,6 @@ export default function DashboardEntidad() {
         {/* ── SERVICIOS ── */}
         {pestaña === "servicios" && (
           <>
-            {/* Formulario nuevo servicio */}
             {mostrarForm && (
               <div className="bg-card border border-border rounded-2xl p-6 mb-6">
                 <h2 className="text-sm font-semibold text-foreground mb-5">{t.dashEntidad.nuevoServicio}</h2>
@@ -264,7 +273,6 @@ export default function DashboardEntidad() {
                       </select>
                     </div>
                   </div>
-
                   <div className="space-y-1.5">
                     <label className="text-xs font-medium text-muted-foreground">{t.dashEntidad.descripcion} *</label>
                     <textarea
@@ -275,7 +283,6 @@ export default function DashboardEntidad() {
                       className="w-full px-3 py-2 rounded-lg border border-border bg-input text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors resize-none"
                     />
                   </div>
-
                   <div className="space-y-1.5">
                     <label className="text-xs font-medium text-muted-foreground">
                       {t.dashEntidad.imagen} <span className="text-muted-foreground/50">({lang === "es" ? "opcional" : "optional"})</span>
@@ -299,11 +306,7 @@ export default function DashboardEntidad() {
                       </div>
                     )}
                   </div>
-
-                  {errorForm && (
-                    <p className="text-xs text-red-500 bg-red-500/10 border border-red-500/20 px-3 py-2 rounded-lg">{errorForm}</p>
-                  )}
-
+                  {errorForm && <p className="text-xs text-red-500 bg-red-500/10 border border-red-500/20 px-3 py-2 rounded-lg">{errorForm}</p>}
                   <div className="flex justify-end gap-3">
                     <button type="button" onClick={() => { setMostrarForm(false); setErrorForm("") }}
                       className="px-4 py-2 rounded-lg border border-border text-muted-foreground hover:text-foreground text-sm transition-colors">
@@ -318,7 +321,69 @@ export default function DashboardEntidad() {
               </div>
             )}
 
-            {/* Lista servicios */}
+            {/* Modal editar servicio */}
+            {editandoServicio && (
+              <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center px-4" onClick={() => setEditandoServicio(null)}>
+                <div className="bg-card border border-border rounded-2xl max-w-lg w-full p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex items-start justify-between mb-5">
+                    <h2 className="text-base font-semibold text-foreground">{t.dashEntidad.editar}</h2>
+                    <button onClick={() => setEditandoServicio(null)} className="text-muted-foreground hover:text-foreground transition-colors">
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                    </button>
+                  </div>
+                  <form onSubmit={handleGuardarEdicion} className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {[
+                        { label: `${t.dashEntidad.nombre} *`, field: "nombre" as keyof DatosCrearServicio, type: "text" },
+                        { label: `${t.dashEntidad.ubicacion} *`, field: "ubicacion" as keyof DatosCrearServicio, type: "text" },
+                        { label: `${t.dashEntidad.telefono} *`, field: "telefono" as keyof DatosCrearServicio, type: "tel" },
+                      ].map((f) => (
+                        <div key={f.field} className="space-y-1.5">
+                          <label className="text-xs font-medium text-muted-foreground">{f.label}</label>
+                          <input type={f.type} value={formEditar[f.field] as string}
+                            onChange={(e) => setFormEditar({ ...formEditar, [f.field]: e.target.value })}
+                            className={inputClass} />
+                        </div>
+                      ))}
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium text-muted-foreground">{t.dashEntidad.tipo}</label>
+                        <select value={formEditar.tipo}
+                          onChange={(e) => setFormEditar({ ...formEditar, tipo: e.target.value as TipoServicio })}
+                          className={inputClass}>
+                          {TIPOS_SERVICIO.map((tp) => <option key={tp}>{tp}</option>)}
+                        </select>
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-muted-foreground">{t.dashEntidad.descripcion}</label>
+                      <textarea value={formEditar.descripcion}
+                        onChange={(e) => setFormEditar({ ...formEditar, descripcion: e.target.value })}
+                        rows={3}
+                        className="w-full px-3 py-2 rounded-lg border border-border bg-input text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors resize-none" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-muted-foreground">{t.dashEntidad.plazas}</label>
+                      <input type="number" min="0"
+                        value={formEditar.plazas ?? ""}
+                        placeholder={lang === "es" ? "Vacío = sin límite" : "Empty = unlimited"}
+                        onChange={(e) => setFormEditar({ ...formEditar, plazas: e.target.value === "" ? null : parseInt(e.target.value) })}
+                        className={inputClass} />
+                    </div>
+                    <div className="flex justify-end gap-3">
+                      <button type="button" onClick={() => setEditandoServicio(null)}
+                        className="px-4 py-2 rounded-lg border border-border text-muted-foreground hover:text-foreground text-sm transition-colors">
+                        {t.dashEntidad.cancelar}
+                      </button>
+                      <button type="submit" disabled={guardandoEdicion}
+                        className="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-medium transition-colors disabled:opacity-50">
+                        {guardandoEdicion ? t.dashEntidad.actualizando : t.dashEntidad.actualizar}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+
             {cargandoServicios ? (
               <div className="text-center py-16">
                 <div className="w-5 h-5 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin mx-auto mb-3" />
@@ -338,12 +403,9 @@ export default function DashboardEntidad() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <span className="text-sm font-semibold text-foreground truncate">{s.nombre}</span>
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                          s.activo ? "bg-emerald-500/10 text-emerald-500" : "bg-muted text-muted-foreground"
-                        }`}>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.activo ? "bg-emerald-500/10 text-emerald-500" : "bg-muted text-muted-foreground"}`}>
                           {s.activo ? t.dashAdmin.activo : t.dashAdmin.inactivo}
                         </span>
-                        {/* Badge plazas */}
                         {s.plazas === null ? (
                           <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-500 border border-blue-500/20 font-medium">
                             ∞ {lang === "es" ? "Sin límite" : "Unlimited"}
@@ -366,20 +428,16 @@ export default function DashboardEntidad() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <button
-                        onClick={() => handleAbrirEditar(s)}
-                        className="px-3 py-1.5 rounded-lg border border-border hover:border-border-strong text-muted-foreground hover:text-foreground text-xs transition-colors"
-                      >
+                      <button onClick={() => handleAbrirEditar(s)}
+                        className="px-3 py-1.5 rounded-lg border border-border hover:border-border-strong text-muted-foreground hover:text-foreground text-xs transition-colors">
                         {lang === "es" ? "Editar" : "Edit"}
                       </button>
-                      <button
-                        onClick={() => toggleActivo(s.id, !s.activo)}
+                      <button onClick={() => toggleActivo(s.id, !s.activo)}
                         className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
                           s.activo
                             ? "bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/25"
                             : "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/25"
-                        }`}
-                      >
+                        }`}>
                         {s.activo ? t.dashAdmin.desactivar : t.dashAdmin.activar}
                       </button>
                       {confirmEliminar === s.id ? (
@@ -442,12 +500,15 @@ export default function DashboardEntidad() {
                         <span className="text-xs text-muted-foreground/60">
                           {new Date(s.created_at).toLocaleDateString(lang === "en" ? "en-GB" : "es-ES")}
                         </span>
-                        {s.estado === "pendiente" && (
-                          <button
-                            onClick={() => setSolicitudActiva(s)}
-                            className="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 hover:bg-emerald-500/20 text-xs font-medium transition-colors"
-                          >
+                        {s.estado === "pendiente" ? (
+                          <button onClick={() => handleAbrirRespuesta(s)}
+                            className="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 hover:bg-emerald-500/20 text-xs font-medium transition-colors">
                             {lang === "es" ? "Responder" : "Reply"}
+                          </button>
+                        ) : (
+                          <button onClick={() => handleAbrirRespuesta(s)}
+                            className="px-3 py-1.5 rounded-lg bg-muted border border-border hover:border-border-strong text-muted-foreground hover:text-foreground text-xs font-medium transition-colors">
+                            {lang === "es" ? "Modificar" : "Modify"}
                           </button>
                         )}
                       </div>
@@ -460,14 +521,16 @@ export default function DashboardEntidad() {
         )}
       </main>
 
-      {/* Modal responder solicitud */}
+      {/* Modal responder / modificar */}
       {solicitudActiva && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center px-4" onClick={() => setSolicitudActiva(null)}>
           <div className="bg-card border border-border rounded-2xl max-w-md w-full p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-start justify-between mb-5">
               <div>
                 <h2 className="text-base font-semibold text-foreground">
-                  {lang === "es" ? "Responder solicitud" : "Reply to request"}
+                  {solicitudActiva.estado === "pendiente"
+                    ? (lang === "es" ? "Responder solicitud" : "Reply to request")
+                    : (lang === "es" ? "Modificar respuesta" : "Modify response")}
                 </h2>
                 <p className="text-xs text-muted-foreground mt-0.5">{lang === "es" ? "De" : "From"}: {solicitudActiva.nombre_familiar}</p>
               </div>
@@ -475,33 +538,33 @@ export default function DashboardEntidad() {
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
               </button>
             </div>
-
-            <div className="bg-muted rounded-lg p-3 mb-5 text-xs text-muted-foreground">
+            <div className="bg-muted rounded-lg p-3 mb-4 text-xs text-muted-foreground">
               <p className="font-medium text-foreground mb-1">{solicitudActiva.servicio?.nombre}</p>
               <p>{solicitudActiva.mensaje}</p>
             </div>
-
+            {solicitudActiva.estado !== "pendiente" && (
+              <div className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs px-3 py-2.5 rounded-lg mb-4">
+                <svg width="13" height="13" viewBox="0 0 12 12" fill="none" className="shrink-0 mt-0.5">
+                  <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.2"/>
+                  <path d="M6 4v2.5M6 8v.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+                </svg>
+                {lang === "es" ? "Esta solicitud ya fue respondida. Puedes cambiar la decisión." : "This request was already answered. You can change the decision."}
+              </div>
+            )}
             <form onSubmit={handleResponder} className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 {(["aceptada", "rechazada"] as const).map((e) => (
-                  <button
-                    key={e} type="button"
+                  <button key={e} type="button"
                     onClick={() => setRespuesta({ ...respuesta, estado: e })}
                     className={`py-2.5 rounded-lg border text-sm font-medium transition-all ${
                       respuesta.estado === e
-                        ? e === "aceptada"
-                          ? "border-emerald-500 bg-emerald-500/10 text-emerald-500"
-                          : "border-red-500 bg-red-500/10 text-red-500"
+                        ? e === "aceptada" ? "border-emerald-500 bg-emerald-500/10 text-emerald-500" : "border-red-500 bg-red-500/10 text-red-500"
                         : "border-border text-muted-foreground hover:border-border-strong"
-                    }`}
-                  >
-                    {e === "aceptada"
-                      ? `✓ ${t.dashEntidad.aceptar}`
-                      : `✗ ${t.dashEntidad.rechazar}`}
+                    }`}>
+                    {e === "aceptada" ? `✓ ${t.dashEntidad.aceptar}` : `✗ ${t.dashEntidad.rechazar}`}
                   </button>
                 ))}
               </div>
-
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground">
                   {lang === "es" ? "Mensaje para la familia *" : "Message to the family *"}
@@ -514,14 +577,13 @@ export default function DashboardEntidad() {
                   className="w-full px-3 py-2 rounded-lg border border-border bg-input text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors resize-none"
                 />
               </div>
-
-              <button
-                type="submit" disabled={guardandoRespuesta || !respuesta.mensaje.trim()}
-                className="w-full py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-semibold transition-colors disabled:opacity-50"
-              >
+              <button type="submit" disabled={guardandoRespuesta || !respuesta.mensaje.trim()}
+                className="w-full py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-semibold transition-colors disabled:opacity-50">
                 {guardandoRespuesta
-                  ? (lang === "es" ? "Enviando..." : "Sending...")
-                  : (lang === "es" ? "Enviar respuesta" : "Send reply")}
+                  ? (lang === "es" ? "Guardando..." : "Saving...")
+                  : solicitudActiva.estado === "pendiente"
+                    ? (lang === "es" ? "Enviar respuesta" : "Send reply")
+                    : (lang === "es" ? "Guardar cambios" : "Save changes")}
               </button>
             </form>
           </div>

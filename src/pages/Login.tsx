@@ -105,9 +105,12 @@ export default function Login() {
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-medium text-muted-foreground">{t.login.password}</label>
-                <a href="#" className="text-xs text-emerald-500 hover:text-emerald-400 transition-colors">
+                <Link
+                  to="/recuperar"
+                  className="text-xs text-emerald-500 hover:text-emerald-400 transition-colors"
+                >
                   {t.login.olvidaste}
-                </a>
+                </Link>
               </div>
               <div className="relative">
                 <input

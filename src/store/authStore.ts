@@ -3,12 +3,13 @@ import { persist } from "zustand/middleware"
 import type { Usuario, DatosLogin, DatosRegistroFamilia, DatosRegistroEntidad } from "@/interfaces/Usuario"
 import { createAuthRepository } from "@/database/repositories"
 import { supabase } from "@/database/supabase/Client"
+import { usePerfilStore } from "@/store/perfilStore"
+import { useServicioStore } from "@/store/servicioStore"
+import { useSolicitudStore } from "@/store/solicitudStore"
 
 const authRepo = createAuthRepository()
 
-// Flag para evitar que onAuthStateChange interfiera durante el logout
 let cerrandoSesion = false
-// Unsubscribe del listener de auth para evitar acumulación
 let unsubscribeAuth: (() => void) | null = null
 
 interface AuthState {
@@ -23,6 +24,14 @@ interface AuthState {
   inicializar:      () => Promise<void>
 }
 
+// Limpia todos los stores que guardan datos de usuario
+function limpiarStores() {
+  localStorage.removeItem("conciliaex-auth")
+  usePerfilStore.getState().reset()
+  useServicioStore.getState().reset()
+  useSolicitudStore.getState().reset()
+}
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
@@ -31,10 +40,8 @@ export const useAuthStore = create<AuthState>()(
       inicializado: false,
 
       inicializar: async () => {
-        // Si estamos cerrando sesión no hacer nada
         if (cerrandoSesion) return
 
-        // Limpiar listener previo para evitar acumulación
         if (unsubscribeAuth) {
           unsubscribeAuth()
           unsubscribeAuth = null
@@ -49,7 +56,6 @@ export const useAuthStore = create<AuthState>()(
             .eq("id", usuario.id)
             .single()
 
-          // Forzar logout si el perfil no existe (borrado) o está desactivado
           if (!perfil || !perfil.activo) {
             cerrandoSesion = true
             await supabase.auth.signOut({ scope: "local" })
@@ -78,7 +84,6 @@ export const useAuthStore = create<AuthState>()(
             .eq("id", u.id)
             .single()
 
-          // Forzar logout si el perfil fue borrado o desactivado mientras estaba conectado
           if (!perfil || !perfil.activo) {
             cerrandoSesion = true
             await supabase.auth.signOut({ scope: "local" })
@@ -121,19 +126,21 @@ export const useAuthStore = create<AuthState>()(
 
       cerrarSesion: async () => {
         cerrandoSesion = true
-        // Cancelar listener antes de hacer signOut
+
         if (unsubscribeAuth) {
           unsubscribeAuth()
           unsubscribeAuth = null
         }
+
         set({ usuario: null, inicializado: false })
-        localStorage.removeItem("conciliaex-auth")
+        limpiarStores()
+
         try {
           await supabase.auth.signOut({ scope: "local" })
         } catch (e) {
           console.error(e)
         }
-        // Mantener cerrandoSesion=true hasta que la página recargue
+
         window.location.replace("/")
       },
     }),

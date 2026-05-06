@@ -56,7 +56,14 @@ export class SupabaseSolicitudRepository implements SolicitudRepository {
   }
 
   async responderSolicitud(id: string, datos: DatosResponderSolicitud) {
-    // 1. Actualizar el estado de la solicitud
+    // 1. Leer el estado actual de la solicitud ANTES de actualizarla
+    const { data: solicitudActual } = await supabase
+      .from("solicitudes")
+      .select("servicio_id, estado")
+      .eq("id", id)
+      .single()
+
+    // 2. Actualizar el estado de la solicitud
     const { error } = await supabase
       .from("solicitudes")
       .update({
@@ -71,31 +78,40 @@ export class SupabaseSolicitudRepository implements SolicitudRepository {
       return { error: "No se pudo responder la solicitud" }
     }
 
-    // 2. Si se aceptó: decrementar plazas y desactivar si llegan a 0 (Opción C)
-    if (datos.estado === "aceptada") {
-      // Obtener el servicio_id de la solicitud
-      const { data: solicitud } = await supabase
-        .from("solicitudes")
-        .select("servicio_id")
-        .eq("id", id)
+    // 3. Gestionar plazas según el cambio de estado
+    if (solicitudActual?.servicio_id) {
+      const { data: servicio } = await supabase
+        .from("servicios")
+        .select("plazas, activo")
+        .eq("id", solicitudActual.servicio_id)
         .single()
 
-      if (solicitud?.servicio_id) {
-        // Leer plazas actuales del servicio
-        const { data: servicio } = await supabase
-          .from("servicios")
-          .select("plazas")
-          .eq("id", solicitud.servicio_id)
-          .single()
+      if (servicio && servicio.plazas !== null) {
+        let nuevasPlazas = servicio.plazas
 
-        // Solo actuar si el servicio tiene plazas limitadas (no null) y quedan plazas
-        if (servicio && servicio.plazas !== null && servicio.plazas > 0) {
-          const nuevasPlazas = servicio.plazas - 1
+        // Aceptar una que NO estaba aceptada: decrementar plaza
+        if (datos.estado === "aceptada" && solicitudActual.estado !== "aceptada") {
+          nuevasPlazas = Math.max(0, servicio.plazas - 1)
+        }
+
+        // Rechazar una que SÍ estaba aceptada: devolver plaza
+        if (datos.estado === "rechazada" && solicitudActual.estado === "aceptada") {
+          nuevasPlazas = servicio.plazas + 1
+        }
+
+        // Solo actualizar si el número cambió
+        if (nuevasPlazas !== servicio.plazas) {
           const updates: Record<string, unknown> = {
             plazas:     nuevasPlazas,
             updated_at: new Date().toISOString(),
           }
-          // Opción C: si llegan a 0 → desactivar automáticamente
+
+          // Si se devuelve una plaza y el servicio estaba desactivado por falta de plazas, reactivarlo
+          if (nuevasPlazas > 0 && datos.estado === "rechazada") {
+            updates.activo = true
+          }
+
+          // Si las plazas llegan a 0, desactivar el servicio
           if (nuevasPlazas === 0) {
             updates.activo = false
           }
@@ -103,7 +119,7 @@ export class SupabaseSolicitudRepository implements SolicitudRepository {
           await supabase
             .from("servicios")
             .update(updates)
-            .eq("id", solicitud.servicio_id)
+            .eq("id", solicitudActual.servicio_id)
         }
       }
     }

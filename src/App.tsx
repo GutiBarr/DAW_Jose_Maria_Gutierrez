@@ -13,10 +13,12 @@ import Landing  from "@/pages/Landing"
 import NotFound from "@/pages/NotFound"
 
 // Auth pages
-import Login           from "@/pages/Login"
-import Registro        from "@/pages/Registro"
-import RegistroFamilia from "@/pages/RegistroFamilia"
-import RegistroEntidad from "@/pages/RegistroEntidad"
+import Login             from "@/pages/Login"
+import Registro          from "@/pages/Registro"
+import RegistroFamilia   from "@/pages/RegistroFamilia"
+import RegistroEntidad   from "@/pages/RegistroEntidad"
+import RecuperarPassword from "@/pages/RecuperarPassword"
+import NuevaPassword     from "@/pages/NuevaPassword"
 
 // Dashboards
 import DashboardFamilia   from "@/pages/familia/DashboardFamilia"
@@ -36,13 +38,16 @@ export default function App() {
     aplicar()
   }, [inicializar, aplicar])
 
-
   return (
     <BrowserRouter>
       <Routes>
 
         {/* Pública */}
         <Route path="/" element={<Landing />} />
+
+        {/* Recuperación de contraseña — siempre accesibles */}
+        <Route path="/recuperar"      element={<RecuperarPassword />} />
+        <Route path="/nueva-password" element={<NuevaPassword />} />
 
         {/* Solo para NO logueados */}
         <Route element={<AuthGuard />}>
@@ -56,8 +61,8 @@ export default function App() {
         <Route element={<ProtectedRoute />}>
 
           <Route element={<RoleRoute roles={["familia"]} />}>
-            <Route path="/familia/dashboard"  element={<DashboardFamilia />} />
-            <Route path="/solicitar/:id"      element={<SolicitarServicio />} />
+            <Route path="/familia/dashboard" element={<DashboardFamilia />} />
+            <Route path="/solicitar/:id"     element={<SolicitarServicio />} />
           </Route>
 
           <Route element={<RoleRoute roles={["entidad"]} />}>

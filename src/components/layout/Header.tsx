@@ -34,8 +34,8 @@ export default function Header() {
   }
 
   const nombreMostrar = usuario?.rol === "entidad"
-    ? usuario.nombreEntidad
-    : usuario?.nombre
+  ? (perfil?.nombre_entidad ?? usuario.nombreEntidad)
+  : (perfil?.nombre ?? usuario?.nombre)
 
   const navLinks = [
     { label: t.nav.servicios, href: "#catalogo" },

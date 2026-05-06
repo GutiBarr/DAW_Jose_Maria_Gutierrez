@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { useAuthStore } from "@/store/authStore"
 import { useSolicitudStore } from "@/store/solicitudStore"
+import { usePerfilStore } from "@/store/perfilStore"
 import type { Solicitud } from "@/interfaces/Solicitud"
 import LogoFamilia from "@/components/layout/LogoFamilia"
 import { useThemeStore } from "@/store/themeStore"
@@ -23,6 +24,7 @@ const urgenciaBadge = {
 export default function DashboardFamilia() {
   const { usuario, cerrarSesion } = useAuthStore()
   const { solicitudes, cargando, cargarMisSolicitudes } = useSolicitudStore()
+  const { perfil, cargarPerfil } = usePerfilStore()
   const { theme, toggleTheme } = useThemeStore()
   const { lang, toggleLang } = useLangStore()
   const t = useT()
@@ -30,19 +32,17 @@ export default function DashboardFamilia() {
 
   useEffect(() => {
     cargarMisSolicitudes()
+    cargarPerfil()
   }, [])
 
-  const handleLogout = () => {
-    cerrarSesion()
-  }
+  const nombreCompleto = perfil?.nombre ?? usuario?.nombre ?? ""
+  const nombreMostrar = nombreCompleto.split(" ")[0]
+    ? nombreCompleto.split(" ")[0].charAt(0).toUpperCase() + nombreCompleto.split(" ")[0].slice(1).toLowerCase()
+    : ""
 
   const pendientes = solicitudes.filter((s) => s.estado === "pendiente").length
   const aceptadas  = solicitudes.filter((s) => s.estado === "aceptada").length
   const rechazadas = solicitudes.filter((s) => s.estado === "rechazada").length
-
-  const nombreMostrar = usuario?.nombre?.split(" ")[0]
-    ? usuario.nombre!.split(" ")[0].charAt(0).toUpperCase() + usuario.nombre!.split(" ")[0].slice(1).toLowerCase()
-    : ""
 
   const estadoLabel = (estado: string) => {
     if (estado === "pendiente") return t.dashFamilia.pendienteLabel
@@ -64,7 +64,6 @@ export default function DashboardFamilia() {
             <span className="text-sm text-muted-foreground">{t.nav.miPanel}</span>
           </div>
           <div className="flex items-center gap-2">
-            {/* Theme toggle */}
             <button
               onClick={toggleTheme}
               className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
@@ -80,7 +79,6 @@ export default function DashboardFamilia() {
                 </svg>
               )}
             </button>
-            {/* Lang toggle */}
             <button
               onClick={toggleLang}
               className="px-2 py-1 rounded-lg text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted border border-border transition-colors"
@@ -91,13 +89,17 @@ export default function DashboardFamilia() {
               to="/perfil"
               className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border hover:border-border-strong transition-colors"
             >
-              <div className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-xs text-emerald-500 font-medium">
-                {usuario?.nombre?.charAt(0).toUpperCase()}
-              </div>
-              <span className="text-xs text-muted-foreground hidden sm:block">{usuario?.nombre}</span>
+              {perfil?.avatar_url ? (
+                <img src={perfil.avatar_url} alt={nombreCompleto} className="w-5 h-5 rounded-full object-cover ring-1 ring-border" />
+              ) : (
+                <div className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-xs text-emerald-500 font-medium">
+                  {nombreCompleto.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <span className="text-xs text-muted-foreground hidden sm:block">{nombreCompleto}</span>
             </Link>
             <button
-              onClick={handleLogout}
+              onClick={() => cerrarSesion()}
               className="px-3 py-1.5 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             >
               {t.nav.salir}
@@ -107,15 +109,12 @@ export default function DashboardFamilia() {
       </header>
 
       <main className="max-w-6xl mx-auto px-6 lg:px-8 py-10">
-        {/* Título */}
         <div className="flex items-start justify-between mb-8">
           <div>
             <h1 className="text-2xl font-semibold text-foreground mb-1">
               {t.dashFamilia.bienvenido} {nombreMostrar} 👋
             </h1>
-            <p className="text-sm text-muted-foreground">
-              {t.dashFamilia.resumen}
-            </p>
+            <p className="text-sm text-muted-foreground">{t.dashFamilia.resumen}</p>
           </div>
           <a
             href="/#catalogo"
@@ -143,7 +142,6 @@ export default function DashboardFamilia() {
           ))}
         </div>
 
-        {/* Lista solicitudes */}
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-sm font-semibold text-foreground">{t.dashFamilia.misSolicitudes}</h2>
           <span className="text-xs text-muted-foreground">{solicitudes.length} {t.dashFamilia.total}</span>
@@ -158,10 +156,7 @@ export default function DashboardFamilia() {
           <div className="text-center py-16 border border-dashed border-border rounded-2xl">
             <p className="text-sm font-medium text-foreground mb-1">{t.dashFamilia.sinSolicitudes}</p>
             <p className="text-xs text-muted-foreground mb-5">{t.dashFamilia.sinSolicitudesSub}</p>
-            <a
-              href="/#catalogo"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-medium transition-colors"
-            >
+            <a href="/#catalogo" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-medium transition-colors">
               {t.dashFamilia.explorar}
             </a>
           </div>
@@ -195,7 +190,6 @@ export default function DashboardFamilia() {
                     {new Date(s.created_at).toLocaleDateString(lang === "en" ? "en-GB" : "es-ES")}
                   </span>
                 </div>
-
                 {s.mensaje_respuesta && (
                   <div className="mt-3 pt-3 border-t border-border">
                     <p className="text-xs text-muted-foreground mb-1 font-medium">{t.dashFamilia.mensaje}:</p>
@@ -210,14 +204,8 @@ export default function DashboardFamilia() {
 
       {/* Modal detalle */}
       {detalle && (
-        <div
-          className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center px-4"
-          onClick={() => setDetalle(null)}
-        >
-          <div
-            className="bg-card border border-border rounded-2xl max-w-md w-full p-6 shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center px-4" onClick={() => setDetalle(null)}>
+          <div className="bg-card border border-border rounded-2xl max-w-md w-full p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-start justify-between mb-4">
               <h2 className="text-base font-semibold text-foreground">{t.dashFamilia.verDetalle}</h2>
               <button onClick={() => setDetalle(null)} className="text-muted-foreground hover:text-foreground transition-colors">
@@ -226,7 +214,6 @@ export default function DashboardFamilia() {
                 </svg>
               </button>
             </div>
-
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">{t.dashFamilia.servicio}</span>

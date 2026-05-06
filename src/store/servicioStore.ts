@@ -12,13 +12,15 @@ interface ServicioState {
   cargandoBusqueda: boolean
   error:            string | null
 
-  cargarMisServicios: () => Promise<void>
-  buscarServicios:    (filtros: FiltrosServicio) => Promise<void>
-  subirImagen:        (archivo: File, entidadId: string) => Promise<{ url?: string; error?: string }>
-  crearServicio:      (datos: DatosCrearServicio) => Promise<{ error?: string }>
-  actualizarServicio: (id: string, datos: Partial<DatosCrearServicio>) => Promise<{ error?: string }>
-  eliminarServicio:   (id: string) => Promise<{ error?: string }>
-  toggleActivo:       (id: string, activo: boolean) => Promise<{ error?: string }>
+  cargarMisServicios:  () => Promise<void>
+  buscarServicios:     (filtros: FiltrosServicio) => Promise<void>
+  subirImagen:         (archivo: File, entidadId: string) => Promise<{ url?: string; error?: string }>
+  crearServicio:       (datos: DatosCrearServicio) => Promise<{ error?: string }>
+  actualizarServicio:  (id: string, datos: Partial<DatosCrearServicio>) => Promise<{ error?: string }>
+  eliminarServicio:    (id: string) => Promise<{ error?: string }>
+  toggleActivo:        (id: string, activo: boolean) => Promise<{ error?: string }>
+  incrementarVisitas:  (id: string) => Promise<void>
+  reset:               () => void
 }
 
 export const useServicioStore = create<ServicioState>()((set, get) => ({
@@ -27,6 +29,8 @@ export const useServicioStore = create<ServicioState>()((set, get) => ({
   cargando:         false,
   cargandoBusqueda: false,
   error:            null,
+
+  reset: () => set({ servicios: [], resultados: [], cargando: false, cargandoBusqueda: false, error: null }),
 
   cargarMisServicios: async () => {
     set({ cargando: true, error: null })
@@ -129,4 +133,12 @@ export const useServicioStore = create<ServicioState>()((set, get) => ({
       return { error: msg }
     }
   },
-}))
+
+  incrementarVisitas: async (id) => {
+    try {
+      await servicioRepo.incrementarVisitas(id)
+    } catch (e) {
+      console.error("incrementarVisitas error:", e)
+    }
+  },
+}))

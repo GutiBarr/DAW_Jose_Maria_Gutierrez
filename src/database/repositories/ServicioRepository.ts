@@ -14,4 +14,5 @@ export interface ServicioRepository {
   actualizarServicio(id: string, datos: Partial<DatosCrearServicio>): Promise<{ error?: string }>
   eliminarServicio(id: string): Promise<{ error?: string }>
   toggleActivo(id: string, activo: boolean): Promise<{ error?: string }>
+  incrementarVisitas(id: string): Promise<void>
 }
