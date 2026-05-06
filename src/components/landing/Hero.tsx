@@ -1,65 +1,64 @@
 import { Link } from "react-router-dom"
+import { useT } from "@/i18n/useT"
 
 export default function Hero() {
+  const t = useT()
+
   return (
-    <section id="inicio" className="relative min-h-screen flex items-center overflow-hidden bg-slate-950">
-      {/* Grid background */}
+    <section id="inicio" className="relative min-h-screen flex items-center overflow-hidden bg-background">
+      {/* Dot background */}
       <div className="absolute inset-0 bg-grid opacity-50" />
 
-      {/* Glow */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-emerald-500/8 rounded-full blur-[120px] pointer-events-none" />
+      {/* Blob decorativo cálido */}
+      <div className="absolute inset-0 bg-blob" />
 
       <div className="relative z-10 w-full max-w-7xl mx-auto px-6 lg:px-8 pt-32 pb-24">
         <div className="max-w-3xl">
           {/* Badge */}
           <div className="animate-fade-up inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 mb-8">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-xs font-medium text-emerald-300 tracking-wide">
-              Plataforma de servicios · Extremadura
+            <span className="text-xs font-medium text-emerald-500 tracking-wide">
+              {t.hero.badge}
             </span>
           </div>
 
           {/* Headline */}
-          <h1 className="animate-fade-up delay-100 text-5xl sm:text-6xl lg:text-7xl font-semibold text-white leading-[1.08] tracking-tight mb-6">
-            Encuentra el servicio{" "}
-            <span className="gradient-text">que tu familia</span>{" "}
-            necesita
+          <h1 className="animate-fade-up delay-100 text-5xl sm:text-6xl lg:text-7xl font-semibold text-foreground leading-[1.08] tracking-tight mb-6">
+            {t.hero.titulo1}{" "}
+            <span className="gradient-text">{t.hero.tituloResaltado}</span>{" "}
+            {t.hero.titulo2}
           </h1>
 
-          <p className="animate-fade-up delay-200 text-lg text-slate-400 max-w-xl leading-relaxed mb-10">
-            Conectamos familias con personas dependientes con los mejores
-            centros y servicios especializados de Extremadura.
+          <p className="animate-fade-up delay-200 text-lg text-muted-foreground max-w-xl leading-relaxed mb-10">
+            {t.hero.descripcion}
           </p>
 
           {/* CTAs */}
           <div className="animate-fade-up delay-300 flex flex-wrap items-center gap-4">
             <a
               href="#catalogo"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white font-semibold text-sm transition-colors shadow-lg shadow-emerald-900/30"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white font-semibold text-sm transition-colors shadow-lg shadow-emerald-900/20"
             >
-              Ver servicios disponibles
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+              {t.hero.ctaServicios}
             </a>
-            <Link
-              to="/registro"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg border border-slate-700 hover:border-slate-500 text-slate-300 hover:text-white font-medium text-sm transition-colors"
+            <a
+              href="#como-funciona"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg border border-border hover:border-border-strong text-muted-foreground hover:text-foreground font-medium text-sm transition-colors"
             >
-              Crear cuenta gratis
-            </Link>
+              {t.hero.ctaCuenta}
+            </a>
           </div>
 
           {/* Stats */}
           <div className="animate-fade-up delay-300 flex flex-wrap gap-10 mt-14">
             {[
-              { value: "+200", label: "servicios disponibles" },
-              { value: "180+", label: "entidades colaboradoras" },
-              { value: "2.400+", label: "familias registradas" },
+              { value: t.hero.stat1Value, label: t.hero.stat1Label },
+              { value: t.hero.stat2Value, label: t.hero.stat2Label },
+              { value: t.hero.stat3Value, label: t.hero.stat3Label },
             ].map((s) => (
               <div key={s.label}>
-                <div className="text-2xl font-semibold text-white">{s.value}</div>
-                <div className="text-sm text-slate-500 mt-0.5">{s.label}</div>
+                <div className="text-2xl font-semibold text-foreground">{s.value}</div>
+                <div className="text-sm text-muted-foreground mt-0.5">{s.label}</div>
               </div>
             ))}
           </div>

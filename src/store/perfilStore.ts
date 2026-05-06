@@ -22,22 +22,42 @@ export const usePerfilStore = create<PerfilState>()((set) => ({
 
   cargarPerfil: async () => {
     set({ cargando: true, error: null })
-    const perfil = await perfilRepo.obtenerMiPerfil()
-    set({ perfil, cargando: false })
+    try {
+      const perfil = await perfilRepo.obtenerMiPerfil()
+      set({ perfil })
+    } catch (e) {
+      console.error("cargarPerfil error:", e)
+      set({ error: "Error al cargar el perfil" })
+    } finally {
+      set({ cargando: false })
+    }
   },
 
   actualizarPerfil: async (datos) => {
     set({ cargando: true, error: null })
-    const { error } = await perfilRepo.actualizarPerfil(datos)
-    set({ cargando: false })
-    if (error) { set({ error }); return { error } }
-    set((state) => ({
-      perfil: state.perfil ? { ...state.perfil, ...datos } : null,
-    }))
-    return {}
+    try {
+      const { error } = await perfilRepo.actualizarPerfil(datos)
+      if (error) { set({ error }); return { error } }
+      set((state) => ({
+        perfil: state.perfil ? { ...state.perfil, ...datos } : null,
+      }))
+      return {}
+    } catch (e) {
+      console.error("actualizarPerfil error:", e)
+      const msg = "Error inesperado al guardar"
+      set({ error: msg })
+      return { error: msg }
+    } finally {
+      set({ cargando: false })
+    }
   },
 
   subirAvatar: async (archivo, userId) => {
-    return await perfilRepo.subirAvatar(archivo, userId)
+    try {
+      return await perfilRepo.subirAvatar(archivo, userId)
+    } catch (e) {
+      console.error("subirAvatar error:", e)
+      return { error: "Error al subir la imagen" }
+    }
   },
-}))
+}))

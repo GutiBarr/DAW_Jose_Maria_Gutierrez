@@ -29,60 +29,109 @@ export const useAdminStore = create<AdminState>()((set, get) => ({
 
   cargarPerfiles: async () => {
     set({ cargando: true, error: null })
-    const perfiles = await adminRepo.obtenerPerfiles()
-    set({ perfiles, cargando: false })
+    try {
+      const perfiles = await adminRepo.obtenerPerfiles()
+      set({ perfiles })
+    } catch (e) {
+      console.error("cargarPerfiles error:", e)
+      set({ error: "Error al cargar los usuarios" })
+    } finally {
+      set({ cargando: false })
+    }
   },
 
   cambiarRol: async (id, rol) => {
-    const { error } = await adminRepo.cambiarRol(id, rol)
-    if (error) { set({ error }); return { error } }
-    set({
-      perfiles: get().perfiles.map((p) =>
-        p.id === id ? { ...p, rol } : p
-      ),
-    })
-    return {}
+    try {
+      const { error } = await adminRepo.cambiarRol(id, rol)
+      if (error) { set({ error }); return { error } }
+      set({
+        perfiles: get().perfiles.map((p) =>
+          p.id === id ? { ...p, rol } : p
+        ),
+      })
+      return {}
+    } catch (e) {
+      console.error("cambiarRol error:", e)
+      const msg = "Error inesperado al cambiar el rol"
+      set({ error: msg })
+      return { error: msg }
+    }
   },
 
   toggleActivoUsuario: async (id, activo) => {
-    const { error } = await adminRepo.toggleActivoUsuario(id, activo)
-    if (error) { set({ error }); return { error } }
-    set({
-      perfiles: get().perfiles.map((p) =>
-        p.id === id ? { ...p, activo } : p
-      ),
-    })
-    return {}
+    try {
+      const { error } = await adminRepo.toggleActivoUsuario(id, activo)
+      if (error) { set({ error }); return { error } }
+      set({
+        perfiles: get().perfiles.map((p) =>
+          p.id === id ? { ...p, activo } : p
+        ),
+      })
+      return {}
+    } catch (e) {
+      console.error("toggleActivoUsuario error:", e)
+      const msg = "Error inesperado al cambiar estado"
+      set({ error: msg })
+      return { error: msg }
+    }
   },
 
   eliminarUsuario: async (id) => {
-    const { error } = await adminRepo.eliminarUsuario(id)
-    if (error) { set({ error }); return { error } }
-    set({ perfiles: get().perfiles.filter((p) => p.id !== id) })
-    return {}
+    try {
+      const { error } = await adminRepo.eliminarUsuario(id)
+      if (error) { set({ error }); return { error } }
+      set({ perfiles: get().perfiles.filter((p) => p.id !== id) })
+      return {}
+    } catch (e) {
+      console.error("eliminarUsuario error:", e)
+      const msg = "Error inesperado al eliminar el usuario"
+      set({ error: msg })
+      return { error: msg }
+    }
   },
 
   cargarTodosServicios: async () => {
     set({ cargando: true, error: null })
-    const servicios = await adminRepo.obtenerTodosServicios()
-    set({ servicios, cargando: false })
+    try {
+      const servicios = await adminRepo.obtenerTodosServicios()
+      set({ servicios })
+    } catch (e) {
+      console.error("cargarTodosServicios error:", e)
+      set({ error: "Error al cargar los servicios" })
+    } finally {
+      set({ cargando: false })
+    }
   },
 
   eliminarServicio: async (id) => {
-    const { error } = await adminRepo.eliminarServicio(id)
-    if (error) { set({ error }); return { error } }
-    set({ servicios: get().servicios.filter((s) => s.id !== id) })
-    return {}
+    try {
+      const { error } = await adminRepo.eliminarServicio(id)
+      if (error) { set({ error }); return { error } }
+      set({ servicios: get().servicios.filter((s) => s.id !== id) })
+      return {}
+    } catch (e) {
+      console.error("eliminarServicio error:", e)
+      const msg = "Error inesperado al eliminar el servicio"
+      set({ error: msg })
+      return { error: msg }
+    }
   },
 
   toggleActivoServicio: async (id, activo) => {
-    const { error } = await adminRepo.toggleActivoServicio(id, activo)
-    if (error) { set({ error }); return { error } }
-    set({
-      servicios: get().servicios.map((s) =>
-        s.id === id ? { ...s, activo } : s
-      ),
-    })
-    return {}
+    try {
+      const { error } = await adminRepo.toggleActivoServicio(id, activo)
+      if (error) { set({ error }); return { error } }
+      set({
+        servicios: get().servicios.map((s) =>
+          s.id === id ? { ...s, activo } : s
+        ),
+      })
+      return {}
+    } catch (e) {
+      console.error("toggleActivoServicio error:", e)
+      const msg = "Error inesperado al cambiar estado del servicio"
+      set({ error: msg })
+      return { error: msg }
+    }
   },
-}))
+}))

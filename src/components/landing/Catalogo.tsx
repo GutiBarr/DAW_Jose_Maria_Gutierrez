@@ -1,34 +1,43 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { useAuthStore } from "@/store/authStore"
 import { useServicioStore } from "@/store/servicioStore"
 import type { Servicio, TipoServicio } from "@/interfaces/Servicio"
+import { useT } from "@/i18n/useT"
+import { TIPOS_SERVICIO } from "@/lib/constants"
 
-const TIPOS: TipoServicio[] = [
-  "Centro de Día",
-  "Atención Temprana",
-  "Actividades Ocupacionales",
-  "Residencia",
-  "Terapia Especializada",
-  "Apoyo Familiar",
-  "Empleo con Apoyo",
-  "Respiro Familiar",
-  "Otro",
-]
 
 export default function Catalogo() {
   const { usuario } = useAuthStore()
   const { resultados, cargandoBusqueda, buscarServicios } = useServicioStore()
   const navigate = useNavigate()
+  const t = useT()
 
   const [nombre,    setNombre]    = useState("")
   const [tipo,      setTipo]      = useState<TipoServicio | "">("")
   const [ubicacion, setUbicacion] = useState("")
   const [detalle,   setDetalle]   = useState<Servicio | null>(null)
 
+  // Carga inicial
+  useEffect(() => { buscarServicios({}) }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Búsqueda automática con debounce al escribir
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const triggerBusqueda = (n: string, tp: TipoServicio | "", ub: string) => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => buscarServicios({ nombre: n, tipo: tp, ubicacion: ub }), 400)
+  }
+
+  const handleNombre = (v: string) => { setNombre(v); triggerBusqueda(v, tipo, ubicacion) }
+  const handleTipo   = (v: TipoServicio | "") => { setTipo(v); triggerBusqueda(nombre, v, ubicacion) }
+  const handleUbicacion = (v: string) => { setUbicacion(v); triggerBusqueda(nombre, tipo, v) }
+
+  // Cerrar modal con Escape
   useEffect(() => {
-  buscarServicios({})
-}, [])
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") setDetalle(null) }
+    window.addEventListener("keydown", handler)
+    return () => window.removeEventListener("keydown", handler)
+  }, [])
 
   const handleBuscar = (e: React.FormEvent) => {
     e.preventDefault()
@@ -40,6 +49,7 @@ export default function Catalogo() {
     setTipo("")
     setUbicacion("")
     buscarServicios({})
+    if (debounceRef.current) clearTimeout(debounceRef.current)
   }
 
   const handleSolicitar = (servicio: Servicio) => {
@@ -48,63 +58,62 @@ export default function Catalogo() {
       return
     }
     if (usuario.rol !== "familia") return
-    // Aquí irá el flujo de solicitud — lo construimos en el siguiente paso
     navigate(`/solicitar/${servicio.id}`)
   }
 
   return (
-    <section id="catalogo" className="py-24 bg-slate-950">
+    <section id="catalogo" className="py-24 bg-background">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12">
           <div>
-            <p className="text-xs font-semibold text-emerald-400 tracking-widest uppercase mb-3">
-              Catálogo
+            <p className="text-xs font-semibold text-emerald-500 tracking-widest uppercase mb-3">
+              {t.catalogo.etiqueta}
             </p>
-            <h2 className="text-4xl font-semibold text-white leading-tight">
-              Servicios disponibles
+            <h2 className="text-4xl font-semibold text-foreground leading-tight">
+              {t.catalogo.titulo}
             </h2>
           </div>
-          <p className="text-slate-500 text-sm max-w-xs md:text-right leading-relaxed">
-            Todos los servicios están verificados y publicados por entidades colaboradoras de Extremadura.
+          <p className="text-muted-foreground text-sm max-w-xs md:text-right leading-relaxed">
+            {t.catalogo.descripcion}
           </p>
         </div>
 
         {/* Filtros */}
         <form
           onSubmit={handleBuscar}
-          className="bg-slate-900 border border-slate-800 rounded-2xl p-5 mb-8"
+          className="bg-card border border-border rounded-2xl p-5 mb-8 shadow-sm"
         >
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-slate-500">Nombre</label>
+              <label className="text-xs font-medium text-muted-foreground">{t.catalogo.filtroNombre}</label>
               <input
                 type="text"
-                placeholder="Buscar por nombre..."
+                placeholder={t.catalogo.filtroNombrePlaceholder}
                 value={nombre}
-                onChange={(e) => setNombre(e.target.value)}
-                className="w-full h-9 px-3 rounded-lg border border-slate-700 bg-slate-800 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
+                onChange={(e) => handleNombre(e.target.value)}
+                className="w-full h-9 px-3 rounded-lg border border-border bg-input text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-slate-500">Tipo de servicio</label>
+              <label className="text-xs font-medium text-muted-foreground">{t.catalogo.filtroTipo}</label>
               <select
                 value={tipo}
-                onChange={(e) => setTipo(e.target.value as TipoServicio | "")}
-                className="w-full h-9 px-3 rounded-lg border border-slate-700 bg-slate-800 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
+                onChange={(e) => handleTipo(e.target.value as TipoServicio | "")}
+                className="w-full h-9 px-3 rounded-lg border border-border bg-input text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
               >
-                <option value="">Todos los tipos</option>
-                {TIPOS.map((t) => <option key={t}>{t}</option>)}
+                <option value="">{t.catalogo.filtroTipoTodos}</option>
+                {TIPOS_SERVICIO.map((tp) => <option key={tp}>{tp}</option>)}
               </select>
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-slate-500">Ubicación</label>
+              <label className="text-xs font-medium text-muted-foreground">{t.catalogo.filtroUbicacion}</label>
               <input
                 type="text"
-                placeholder="Ciudad o provincia..."
+                placeholder={t.catalogo.filtroUbicacionPlaceholder}
                 value={ubicacion}
-                onChange={(e) => setUbicacion(e.target.value)}
-                className="w-full h-9 px-3 rounded-lg border border-slate-700 bg-slate-800 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
+                onChange={(e) => handleUbicacion(e.target.value)}
+                className="w-full h-9 px-3 rounded-lg border border-border bg-input text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
               />
             </div>
           </div>
@@ -112,15 +121,15 @@ export default function Catalogo() {
             <button
               type="button"
               onClick={handleLimpiar}
-              className="text-xs text-slate-500 hover:text-slate-300 transition-colors px-3 py-1.5"
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5"
             >
-              Limpiar filtros
+              {t.catalogo.limpiarFiltros}
             </button>
             <button
               type="submit"
               className="px-5 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-medium transition-colors"
             >
-              Buscar
+              {t.catalogo.buscar}
             </button>
           </div>
         </form>
@@ -129,53 +138,53 @@ export default function Catalogo() {
         {cargandoBusqueda ? (
           <div className="text-center py-16">
             <div className="w-6 h-6 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin mx-auto mb-3" />
-            <p className="text-sm text-slate-500">Buscando servicios...</p>
+            <p className="text-sm text-muted-foreground">{t.catalogo.buscando}</p>
           </div>
         ) : resultados.length === 0 ? (
-          <div className="text-center py-16 border border-dashed border-slate-800 rounded-2xl">
-            <p className="text-sm font-medium text-slate-400 mb-1">No se encontraron servicios</p>
-            <p className="text-xs text-slate-600">Prueba a cambiar los filtros</p>
+          <div className="text-center py-16 border border-dashed border-border rounded-2xl">
+            <p className="text-sm font-medium text-foreground mb-1">{t.catalogo.sinResultados}</p>
+            <p className="text-xs text-muted-foreground">{t.catalogo.sinResultadosSub}</p>
           </div>
         ) : (
           <>
-            <p className="text-xs text-slate-600 mb-5">
-              {resultados.length} servicio{resultados.length !== 1 ? "s" : ""} encontrado{resultados.length !== 1 ? "s" : ""}
+            <p className="text-xs text-muted-foreground mb-5">
+              {t.catalogo.resultados(resultados.length)}
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {resultados.map((s: Servicio) => (
                 <div
                   key={s.id}
-                  className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden hover:border-slate-700 transition-all duration-200 group flex flex-col"
+                  className="bg-card border border-border rounded-2xl overflow-hidden hover:border-emerald-500/30 hover:shadow-md transition-all duration-200 group flex flex-col"
                 >
                   {/* Imagen */}
                   {s.imagen_url ? (
-                    <img
-                      src={s.imagen_url}
-                      alt={s.nombre}
-                      className="w-full h-40 object-cover"
-                    />
+                    <img src={s.imagen_url} alt={s.nombre} className="w-full h-40 object-cover" />
                   ) : (
-                    <div className="w-full h-40 bg-slate-800 flex items-center justify-center">
-                      <span className="text-4xl opacity-40">🏥</span>
+                    <div className="w-full h-40 bg-muted flex items-center justify-center">
+                      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" className="opacity-20">
+                        <rect x="3" y="3" width="34" height="34" rx="5" stroke="currentColor" strokeWidth="2"/>
+                        <path d="M3 27l9-9 6 6 5-5 14 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <circle cx="13" cy="14" r="3" stroke="currentColor" strokeWidth="2"/>
+                      </svg>
                     </div>
                   )}
 
                   {/* Info */}
                   <div className="p-5 flex flex-col flex-1">
                     <div className="mb-3">
-                      <span className="inline-block text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-medium mb-2">
+                      <span className="inline-block text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 font-medium mb-2">
                         {s.tipo}
                       </span>
-                      <h3 className="text-sm font-semibold text-white leading-snug">
+                      <h3 className="text-sm font-semibold text-foreground leading-snug">
                         {s.nombre}
                       </h3>
                     </div>
 
-                    <p className="text-xs text-slate-500 line-clamp-2 mb-4 flex-1">
+                    <p className="text-xs text-muted-foreground line-clamp-2 mb-4 flex-1">
                       {s.descripcion}
                     </p>
 
-                    <div className="flex flex-col gap-1.5 text-xs text-slate-600 mb-4">
+                    <div className="flex flex-col gap-1.5 text-xs text-muted-foreground mb-4">
                       <span className="flex items-center gap-1.5">
                         <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                           <path d="M6 1C4.067 1 2.5 2.567 2.5 4.5c0 2.625 3.5 6.5 3.5 6.5s3.5-3.875 3.5-6.5C9.5 2.567 7.933 1 6 1z" stroke="currentColor" strokeWidth="1.2"/>
@@ -194,15 +203,15 @@ export default function Catalogo() {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => setDetalle(s)}
-                        className="flex-1 px-3 py-2 rounded-lg border border-slate-700 hover:border-slate-600 text-slate-400 hover:text-white text-xs font-medium transition-colors"
+                        className="flex-1 px-3 py-2 rounded-lg border border-border hover:border-border-strong text-muted-foreground hover:text-foreground text-xs font-medium transition-colors"
                       >
-                        Ver detalle
+                        {t.catalogo.verDetalle}
                       </button>
                       <button
                         onClick={() => handleSolicitar(s)}
                         className="flex-1 px-3 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white text-xs font-medium transition-colors"
                       >
-                        Solicitar plaza
+                        {t.catalogo.solicitarPlaza}
                       </button>
                     </div>
                   </div>
@@ -215,14 +224,14 @@ export default function Catalogo() {
         {/* CTA registro */}
         {!usuario && (
           <div className="mt-12 text-center">
-            <p className="text-sm text-slate-500 mb-4">
-              ¿Eres una entidad y quieres publicar tus servicios?
+            <p className="text-sm text-muted-foreground mb-4">
+              {t.catalogo.ctaEntidad}
             </p>
             <Link
               to="/registro/entidad"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border border-slate-700 hover:border-slate-500 text-slate-400 hover:text-white text-sm font-medium transition-colors"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border border-border hover:border-border-strong text-muted-foreground hover:text-foreground text-sm font-medium transition-colors"
             >
-              Registrar mi entidad →
+              {t.catalogo.ctaEntidadBtn}
             </Link>
           </div>
         )}
@@ -235,33 +244,37 @@ export default function Catalogo() {
           onClick={() => setDetalle(null)}
         >
           <div
-            className="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl"
+            className="bg-card border border-border rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             {detalle.imagen_url ? (
               <img src={detalle.imagen_url} alt={detalle.nombre} className="w-full h-48 object-cover" />
             ) : (
-              <div className="w-full h-48 bg-slate-800 flex items-center justify-center">
-                <span className="text-5xl opacity-30">🏥</span>
+              <div className="w-full h-48 bg-muted flex items-center justify-center">
+                <svg width="48" height="48" viewBox="0 0 40 40" fill="none" className="opacity-20">
+                  <rect x="3" y="3" width="34" height="34" rx="5" stroke="currentColor" strokeWidth="2"/>
+                  <path d="M3 27l9-9 6 6 5-5 14 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <circle cx="13" cy="14" r="3" stroke="currentColor" strokeWidth="2"/>
+                </svg>
               </div>
             )}
             <div className="p-6">
               <div className="flex items-start justify-between gap-3 mb-2">
-                <h2 className="text-lg font-semibold text-white">{detalle.nombre}</h2>
+                <h2 className="text-lg font-semibold text-foreground">{detalle.nombre}</h2>
                 <button
                   onClick={() => setDetalle(null)}
-                  className="text-slate-500 hover:text-white transition-colors shrink-0 mt-0.5"
+                  className="text-muted-foreground hover:text-foreground transition-colors shrink-0 mt-0.5"
                 >
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                     <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
                   </svg>
                 </button>
               </div>
-              <span className="inline-block text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-medium mb-3">
+              <span className="inline-block text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 font-medium mb-3">
                 {detalle.tipo}
               </span>
-              <p className="text-sm text-slate-400 leading-relaxed mb-5">{detalle.descripcion}</p>
-              <div className="space-y-2 text-sm text-slate-500 border-t border-slate-800 pt-4 mb-5">
+              <p className="text-sm text-muted-foreground leading-relaxed mb-5">{detalle.descripcion}</p>
+              <div className="space-y-2 text-sm text-muted-foreground border-t border-border pt-4 mb-5">
                 <div className="flex items-center gap-2">
                   <span>📍</span><span>{detalle.ubicacion}</span>
                 </div>
@@ -273,7 +286,7 @@ export default function Catalogo() {
                 onClick={() => { setDetalle(null); handleSolicitar(detalle) }}
                 className="w-full py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-semibold transition-colors"
               >
-                Solicitar plaza
+                {t.catalogo.solicitarPlaza}
               </button>
             </div>
           </div>

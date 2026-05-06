@@ -4,10 +4,17 @@ import { useAuthStore } from "@/store/authStore"
 import { usePerfilStore } from "@/store/perfilStore"
 import { getDashboardByRol } from "@/components/auth/RoleRoute"
 import LogoFamilia from "@/components/layout/LogoFamilia"
+import { useThemeStore } from "@/store/themeStore"
+import { useLangStore } from "@/store/langStore"
+import { useT } from "@/i18n/useT"
+import { supabase } from "@/database/supabase/Client"
 
 export default function Perfil() {
   const { usuario } = useAuthStore()
   const { perfil, cargando, cargarPerfil, actualizarPerfil, subirAvatar } = usePerfilStore()
+  const { theme, toggleTheme } = useThemeStore()
+  const { lang, toggleLang } = useLangStore()
+  const t = useT()
 
   const [form, setForm] = useState({
     nombre:         "",
@@ -15,11 +22,19 @@ export default function Perfil() {
     telefono:       "",
     direccion:      "",
   })
-  const [avatar, setAvatar]         = useState<File | null>(null)
-  const [prevAvatar, setPrevAvatar] = useState<string>("")
-  const [guardando, setGuardando]   = useState(false)
-  const [exito, setExito]           = useState(false)
-  const [error, setError]           = useState("")
+  const [avatar, setAvatar]             = useState<File | null>(null)
+  const [prevAvatar, setPrevAvatar]     = useState<string>("")
+  const [guardando, setGuardando]       = useState(false)
+  const [exito, setExito]               = useState(false)
+  const [error, setError]               = useState("")
+
+  // Cambio de contraseña
+  const [passForm, setPassForm]         = useState({ nueva: "", confirmar: "" })
+  const [showNueva, setShowNueva]       = useState(false)
+  const [showConfirmar, setShowConfirmar] = useState(false)
+  const [guardandoPass, setGuardandoPass] = useState(false)
+  const [exitoPass, setExitoPass]       = useState(false)
+  const [errorPass, setErrorPass]       = useState("")
 
   useEffect(() => {
     cargarPerfil()
@@ -75,44 +90,94 @@ export default function Perfil() {
     setAvatar(null)
   }
 
+  const handleCambiarPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setErrorPass("")
+    setExitoPass(false)
+    if (passForm.nueva.length < 6) {
+      setErrorPass(lang === "es" ? "La contraseña debe tener al menos 6 caracteres" : "Password must be at least 6 characters")
+      return
+    }
+    if (passForm.nueva !== passForm.confirmar) {
+      setErrorPass(lang === "es" ? "Las contraseñas no coinciden" : "Passwords do not match")
+      return
+    }
+    setGuardandoPass(true)
+    const { error } = await supabase.auth.updateUser({ password: passForm.nueva })
+    setGuardandoPass(false)
+    if (error) {
+      setErrorPass(lang === "es" ? "Error al cambiar la contraseña" : "Error changing password")
+      return
+    }
+    setExitoPass(true)
+    setPassForm({ nueva: "", confirmar: "" })
+  }
+
   const dashboardUrl = usuario ? getDashboardByRol(usuario.rol) : "/"
 
+  const inputClass = "w-full h-9 px-3 rounded-lg border border-border bg-input text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
+
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b border-slate-800 px-6 py-4 flex items-center justify-between">
+      <header className="border-b border-border bg-card px-6 py-4 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
           <LogoFamilia variante="header" />
-          <span className="text-sm font-semibold text-white">ConciliaEx</span>
+          <span className="text-sm font-semibold text-foreground">ConciliaEx</span>
         </Link>
-        <Link
-          to={dashboardUrl}
-          className="text-sm text-slate-500 hover:text-slate-300 transition-colors"
-        >
-          ← Volver al panel
-        </Link>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={toggleTheme}
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+          >
+            {theme === "dark" ? (
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="5" stroke="currentColor" strokeWidth="1.8"/>
+                <path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+              </svg>
+            ) : (
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                <path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            )}
+          </button>
+          <button
+            onClick={toggleLang}
+            className="px-2 py-1 rounded-lg text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted border border-border transition-colors"
+          >
+            {lang === "es" ? "EN" : "ES"}
+          </button>
+          <Link
+            to={dashboardUrl}
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            ← {t.nav.miPanel}
+          </Link>
+        </div>
       </header>
 
       <main className="max-w-2xl mx-auto px-6 py-10">
         <div className="mb-8">
-          <h1 className="text-2xl font-semibold text-white">Mi perfil</h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Actualiza tu información personal y foto de perfil
+          <h1 className="text-2xl font-semibold text-foreground">{t.perfil.titulo}</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            {lang === "es" ? "Actualiza tu información personal y foto de perfil" : "Update your personal information and profile photo"}
           </p>
         </div>
 
         {cargando ? (
           <div className="text-center py-16">
             <div className="w-5 h-5 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin mx-auto mb-3" />
-            <p className="text-sm text-slate-600">Cargando perfil...</p>
+            <p className="text-sm text-muted-foreground">...</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Avatar */}
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
-              <h2 className="text-sm font-semibold text-white mb-4">Foto de perfil</h2>
+            <div className="bg-card border border-border rounded-xl p-6">
+              <h2 className="text-sm font-semibold text-foreground mb-4">
+                {lang === "es" ? "Foto de perfil" : "Profile photo"}
+              </h2>
               <div className="flex items-center gap-5">
-                <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-slate-700 bg-slate-800 shrink-0 flex items-center justify-center">
+                <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-border bg-muted shrink-0 flex items-center justify-center">
                   {prevAvatar || perfil?.avatar_url ? (
                     <img
                       src={prevAvatar || perfil?.avatar_url}
@@ -134,90 +199,160 @@ export default function Perfil() {
                       setAvatar(file)
                       setPrevAvatar(URL.createObjectURL(file))
                     }}
-                    className="text-sm text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-emerald-500/10 file:text-emerald-400 hover:file:bg-emerald-500/20 cursor-pointer"
+                    className="text-sm text-muted-foreground file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-emerald-500/10 file:text-emerald-500 hover:file:bg-emerald-500/20 cursor-pointer"
                   />
-                  <p className="text-xs text-slate-600 mt-1.5">JPG, PNG o WEBP. Máximo 5MB.</p>
+                  <p className="text-xs text-muted-foreground/60 mt-1.5">
+                    {lang === "es" ? "JPG, PNG o WEBP. Máximo 5MB." : "JPG, PNG or WEBP. Maximum 5MB."}
+                  </p>
                 </div>
               </div>
             </div>
 
             {/* Datos */}
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4">
-              <h2 className="text-sm font-semibold text-white">Información</h2>
+            <div className="bg-card border border-border rounded-xl p-6 space-y-4">
+              <h2 className="text-sm font-semibold text-foreground">
+                {lang === "es" ? "Información" : "Information"}
+              </h2>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-slate-500">Correo electrónico</label>
+                <label className="text-xs font-medium text-muted-foreground">{t.perfil.email}</label>
                 <input
                   type="email" value={perfil?.email ?? ""} disabled
-                  className="w-full h-9 px-3 rounded-lg border border-slate-700 bg-slate-800/50 text-sm text-slate-500 cursor-not-allowed"
+                  className="w-full h-9 px-3 rounded-lg border border-border bg-muted text-sm text-muted-foreground cursor-not-allowed"
                 />
+                <p className="text-xs text-muted-foreground/60">{t.perfil.emailInfo}</p>
               </div>
 
               {usuario?.rol === "entidad" ? (
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-slate-500">Nombre de la entidad</label>
+                  <label className="text-xs font-medium text-muted-foreground">{t.perfil.nombreEntidad}</label>
                   <input
-                    type="text" placeholder="Nombre de tu entidad"
+                    type="text"
                     value={form.nombre_entidad}
                     onChange={(e) => setField("nombre_entidad", e.target.value)}
-                    className="w-full h-9 px-3 rounded-lg border border-slate-700 bg-slate-800 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
+                    className={inputClass}
                   />
                 </div>
               ) : (
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-slate-500">Nombre completo</label>
+                  <label className="text-xs font-medium text-muted-foreground">{t.perfil.nombre}</label>
                   <input
-                    type="text" placeholder="Tu nombre completo"
+                    type="text"
                     value={form.nombre}
                     onChange={(e) => setField("nombre", e.target.value)}
-                    className="w-full h-9 px-3 rounded-lg border border-slate-700 bg-slate-800 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
+                    className={inputClass}
                   />
                 </div>
               )}
 
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-slate-500">Teléfono</label>
+                <label className="text-xs font-medium text-muted-foreground">{t.perfil.telefono}</label>
                 <input
                   type="tel" placeholder="924 000 000"
                   value={form.telefono}
                   onChange={(e) => setField("telefono", e.target.value)}
-                  className="w-full h-9 px-3 rounded-lg border border-slate-700 bg-slate-800 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
+                  className={inputClass}
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-slate-500">Dirección</label>
+                <label className="text-xs font-medium text-muted-foreground">
+                  {lang === "es" ? "Dirección" : "Address"}
+                </label>
                 <input
-                  type="text" placeholder="Calle, ciudad, provincia"
+                  type="text"
                   value={form.direccion}
                   onChange={(e) => setField("direccion", e.target.value)}
-                  className="w-full h-9 px-3 rounded-lg border border-slate-700 bg-slate-800 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
+                  className={inputClass}
                 />
               </div>
             </div>
 
             {/* Rol */}
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
-              <h2 className="text-sm font-semibold text-white mb-3">Tipo de cuenta</h2>
+            <div className="bg-card border border-border rounded-xl p-6">
+              <h2 className="text-sm font-semibold text-foreground mb-3">
+                {lang === "es" ? "Tipo de cuenta" : "Account type"}
+              </h2>
               <span className={`inline-flex items-center gap-1.5 text-xs px-3 py-1 rounded-full font-medium border ${
                 usuario?.rol === "admin"
-                  ? "bg-violet-500/10 text-violet-400 border-violet-500/20"
+                  ? "bg-violet-500/10 text-violet-500 border-violet-500/20"
                   : usuario?.rol === "entidad"
-                  ? "bg-slate-500/10 text-slate-400 border-slate-500/20"
-                  : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                  ? "bg-muted text-muted-foreground border-border"
+                  : "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
               }`}>
-                {usuario?.rol === "admin" ? "Administrador" : usuario?.rol === "entidad" ? "Entidad" : "Familia"}
+                {usuario?.rol === "admin"
+                  ? (lang === "es" ? "Administrador" : "Administrator")
+                  : usuario?.rol === "entidad"
+                  ? (lang === "es" ? "Entidad" : "Entity")
+                  : (lang === "es" ? "Familia" : "Family")}
               </span>
             </div>
 
+            {/* Contraseña */}
+            <div className="bg-card border border-border rounded-xl p-6">
+              <h2 className="text-sm font-semibold text-foreground mb-4">
+                {t.perfil.cambiarPassword}
+              </h2>
+              <form onSubmit={handleCambiarPassword} className="space-y-3">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">{t.perfil.passwordNueva}</label>
+                  <div className="relative">
+                    <input
+                      type={showNueva ? "text" : "password"}
+                      placeholder="••••••"
+                      value={passForm.nueva}
+                      onChange={(e) => { setPassForm({ ...passForm, nueva: e.target.value }); setErrorPass(""); setExitoPass(false) }}
+                      className={inputClass + " pr-16"}
+                    />
+                    <button type="button" onClick={() => setShowNueva(!showNueva)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-foreground transition-colors">
+                      {showNueva ? t.perfil.ocultar : t.perfil.ver}
+                    </button>
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">{t.perfil.passwordConfirmar}</label>
+                  <div className="relative">
+                    <input
+                      type={showConfirmar ? "text" : "password"}
+                      placeholder="••••••"
+                      value={passForm.confirmar}
+                      onChange={(e) => { setPassForm({ ...passForm, confirmar: e.target.value }); setErrorPass(""); setExitoPass(false) }}
+                      className={inputClass + " pr-16"}
+                    />
+                    <button type="button" onClick={() => setShowConfirmar(!showConfirmar)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-foreground transition-colors">
+                      {showConfirmar ? t.perfil.ocultar : t.perfil.ver}
+                    </button>
+                  </div>
+                </div>
+                {errorPass && (
+                  <p className="text-xs text-red-500 bg-red-500/10 border border-red-500/20 px-3 py-2 rounded-lg">{errorPass}</p>
+                )}
+                {exitoPass && (
+                  <p className="text-xs text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-3 py-2 rounded-lg">
+                    ✓ {lang === "es" ? "Contraseña actualizada correctamente" : "Password updated successfully"}
+                  </p>
+                )}
+                <div className="flex justify-end">
+                  <button
+                    type="submit" disabled={guardandoPass || !passForm.nueva || !passForm.confirmar}
+                    className="px-5 py-2 rounded-lg bg-muted hover:bg-muted/80 text-foreground text-sm font-medium transition-colors disabled:opacity-50 border border-border"
+                  >
+                    {guardandoPass ? (lang === "es" ? "Cambiando..." : "Changing...") : t.perfil.cambiarPassword}
+                  </button>
+                </div>
+              </form>
+            </div>
+
             {error && (
-              <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 px-3 py-2 rounded-lg">
+              <p className="text-xs text-red-500 bg-red-500/10 border border-red-500/20 px-3 py-2 rounded-lg">
                 {error}
               </p>
             )}
             {exito && (
-              <p className="text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-2 rounded-lg">
-                ✓ Perfil actualizado correctamente
+              <p className="text-xs text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-3 py-2 rounded-lg">
+                ✓ {lang === "es" ? "Perfil actualizado correctamente" : "Profile updated successfully"}
               </p>
             )}
 
@@ -226,7 +361,7 @@ export default function Perfil() {
                 type="submit" disabled={guardando}
                 className="px-6 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-semibold transition-colors disabled:opacity-50"
               >
-                {guardando ? "Guardando..." : "Guardar cambios"}
+                {guardando ? t.perfil.guardando : t.perfil.guardar}
               </button>
             </div>
           </form>

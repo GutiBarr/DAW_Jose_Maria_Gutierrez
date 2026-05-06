@@ -9,10 +9,10 @@ interface SolicitudState {
   cargando:         boolean
   error:            string | null
 
-  crearSolicitud:          (datos: DatosCrearSolicitud) => Promise<{ error?: string }>
-  cargarMisSolicitudes:    () => Promise<void>
+  crearSolicitud:           (datos: DatosCrearSolicitud) => Promise<{ error?: string }>
+  cargarMisSolicitudes:     () => Promise<void>
   cargarSolicitudesEntidad: () => Promise<void>
-  responderSolicitud:      (id: string, datos: DatosResponderSolicitud) => Promise<{ error?: string }>
+  responderSolicitud:       (id: string, datos: DatosResponderSolicitud) => Promise<{ error?: string }>
 }
 
 export const useSolicitudStore = create<SolicitudState>()((set, get) => ({
@@ -22,35 +22,64 @@ export const useSolicitudStore = create<SolicitudState>()((set, get) => ({
 
   crearSolicitud: async (datos) => {
     set({ cargando: true, error: null })
-    const { data, error } = await solicitudRepo.crearSolicitud(datos)
-    set({ cargando: false })
-    if (error) { set({ error }); return { error } }
-    if (data) set({ solicitudes: [data, ...get().solicitudes] })
-    return {}
+    try {
+      const { data, error } = await solicitudRepo.crearSolicitud(datos)
+      if (error) { set({ error }); return { error } }
+      if (data) set({ solicitudes: [data, ...get().solicitudes] })
+      return {}
+    } catch (e) {
+      console.error("crearSolicitud error:", e)
+      const msg = "Error inesperado al enviar la solicitud"
+      set({ error: msg })
+      return { error: msg }
+    } finally {
+      set({ cargando: false })
+    }
   },
 
   cargarMisSolicitudes: async () => {
     set({ cargando: true, error: null })
-    const solicitudes = await solicitudRepo.obtenerMisSolicitudes()
-    set({ solicitudes, cargando: false })
+    try {
+      const solicitudes = await solicitudRepo.obtenerMisSolicitudes()
+      set({ solicitudes })
+    } catch (e) {
+      console.error("cargarMisSolicitudes error:", e)
+      set({ error: "Error al cargar las solicitudes" })
+    } finally {
+      set({ cargando: false })
+    }
   },
 
   cargarSolicitudesEntidad: async () => {
     set({ cargando: true, error: null })
-    const solicitudes = await solicitudRepo.obtenerSolicitudesEntidad()
-    set({ solicitudes, cargando: false })
+    try {
+      const solicitudes = await solicitudRepo.obtenerSolicitudesEntidad()
+      set({ solicitudes })
+    } catch (e) {
+      console.error("cargarSolicitudesEntidad error:", e)
+      set({ error: "Error al cargar las solicitudes" })
+    } finally {
+      set({ cargando: false })
+    }
   },
 
   responderSolicitud: async (id, datos) => {
-    const { error } = await solicitudRepo.responderSolicitud(id, datos)
-    if (error) { set({ error }); return { error } }
-    set({
-      solicitudes: get().solicitudes.map((s) =>
-        s.id === id
-          ? { ...s, estado: datos.estado, mensaje_respuesta: datos.mensaje_respuesta }
-          : s
-      ),
-    })
-    return {}
+    try {
+      const { error } = await solicitudRepo.responderSolicitud(id, datos)
+      if (error) { set({ error }); return { error } }
+      set({
+        solicitudes: get().solicitudes.map((s) =>
+          s.id === id
+            ? { ...s, estado: datos.estado, mensaje_respuesta: datos.mensaje_respuesta }
+            : s
+        ),
+      })
+      return {}
+    } catch (e) {
+      console.error("responderSolicitud error:", e)
+      const msg = "Error inesperado al responder"
+      set({ error: msg })
+      return { error: msg }
+    }
   },
-}))
+}))

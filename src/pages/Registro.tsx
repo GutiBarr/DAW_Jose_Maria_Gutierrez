@@ -1,39 +1,42 @@
 import { Link } from "react-router-dom"
 import LogoFamilia from "@/components/layout/LogoFamilia"
-
-const roles = [
-  {
-    id:          "familia",
-    badge:       "Para familias",
-    title:       "Busco servicios para mi familiar",
-    description: "Encuentra recursos adaptados, envía solicitudes y sigue su estado desde tu panel.",
-    features:    ["Búsqueda filtrada de servicios", "Solicitudes a entidades", "Seguimiento en tiempo real"],
-    ruta:        "/registro/familia",
-    color:       "emerald",
-  },
-  {
-    id:          "entidad",
-    badge:       "Para entidades",
-    title:       "Quiero publicar mis servicios",
-    description: "Publica tus servicios, recibe solicitudes de familias y gestiona tu panel desde un solo lugar.",
-    features:    ["Publicación de servicios", "Gestión de solicitudes", "Estadísticas de visibilidad"],
-    ruta:        "/registro/entidad",
-    color:       "slate",
-  },
-]
+import { useT } from "@/i18n/useT"
 
 export default function Registro() {
+  const t = useT()
+
+  const roles = [
+    {
+      id:          "familia",
+      badge:       t.registro.familiasBadge,
+      title:       t.registro.familiasTitulo,
+      description: t.registro.familiasDesc,
+      features:    [t.registro.familiasF1, t.registro.familiasF2, t.registro.familiasF3],
+      ruta:        "/registro/familia",
+      color:       "emerald",
+    },
+    {
+      id:          "entidad",
+      badge:       t.registro.entidadBadge,
+      title:       t.registro.entidadTitulo,
+      description: t.registro.entidadDesc,
+      features:    [t.registro.entidadF1, t.registro.entidadF2, t.registro.entidadF3],
+      ruta:        "/registro/entidad",
+      color:       "slate",
+    },
+  ]
+
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Top bar */}
-      <div className="border-b border-slate-800 px-6 py-4 flex items-center justify-between">
+      <div className="border-b border-border px-6 py-4 flex items-center justify-between bg-card">
         <Link to="/" className="flex items-center gap-2">
           <LogoFamilia variante="header" />
-          <span className="text-sm font-semibold text-white">ConciliaEx</span>
+          <span className="text-sm font-semibold text-foreground">ConciliaEx</span>
         </Link>
-        <Link to="/login" className="text-xs text-slate-500 hover:text-slate-300 transition-colors">
-          ¿Ya tienes cuenta?{" "}
-          <span className="text-emerald-400 font-medium">Inicia sesión</span>
+        <Link to="/login" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+          {t.registro.yaConCuenta}{" "}
+          <span className="text-emerald-500 font-medium">{t.registro.iniciaSesion}</span>
         </Link>
       </div>
 
@@ -41,9 +44,9 @@ export default function Registro() {
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-16">
         <div className="w-full max-w-2xl">
           <div className="text-center mb-10">
-            <h1 className="text-3xl font-semibold text-white mb-2">Crea tu cuenta</h1>
-            <p className="text-slate-500 text-sm">
-              Elige el tipo de cuenta que mejor se adapta a tu situación
+            <h1 className="text-3xl font-semibold text-foreground mb-2">{t.registro.titulo}</h1>
+            <p className="text-muted-foreground text-sm">
+              {t.registro.subtitulo}
             </p>
           </div>
 
@@ -52,30 +55,30 @@ export default function Registro() {
               <Link
                 key={rol.id}
                 to={rol.ruta}
-                className={`group bg-slate-900 rounded-2xl border p-7 flex flex-col transition-all duration-200 hover:shadow-lg ${
+                className={`group bg-card rounded-2xl border p-7 flex flex-col transition-all duration-200 hover:shadow-lg ${
                   rol.color === "emerald"
-                    ? "border-slate-800 hover:border-emerald-500/40"
-                    : "border-slate-800 hover:border-slate-600"
+                    ? "border-border hover:border-emerald-500/40"
+                    : "border-border hover:border-border-strong"
                 }`}
               >
                 <span className={`self-start text-xs font-semibold px-2.5 py-1 rounded-full border mb-5 ${
                   rol.color === "emerald"
-                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                    : "bg-slate-700/50 text-slate-400 border-slate-700"
+                    ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                    : "bg-muted text-muted-foreground border-border"
                 }`}>
                   {rol.badge}
                 </span>
 
-                <h2 className="text-base font-semibold text-white mb-2 leading-snug">
+                <h2 className="text-base font-semibold text-foreground mb-2 leading-snug">
                   {rol.title}
                 </h2>
-                <p className="text-sm text-slate-500 leading-relaxed mb-5">
+                <p className="text-sm text-muted-foreground leading-relaxed mb-5">
                   {rol.description}
                 </p>
 
                 <ul className="space-y-2 mb-6 flex-1">
                   {rol.features.map((f) => (
-                    <li key={f} className="flex items-center gap-2 text-xs text-slate-400">
+                    <li key={f} className="flex items-center gap-2 text-xs text-muted-foreground">
                       <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                         <path d="M2 6l2.5 2.5L10 3.5" stroke="#10b981" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
@@ -86,23 +89,20 @@ export default function Registro() {
 
                 <div className={`flex items-center text-xs font-semibold transition-colors ${
                   rol.color === "emerald"
-                    ? "text-emerald-400 group-hover:text-emerald-300"
-                    : "text-slate-400 group-hover:text-slate-300"
+                    ? "text-emerald-500 group-hover:text-emerald-400"
+                    : "text-muted-foreground group-hover:text-foreground"
                 }`}>
-                  Continuar
-                  <svg className="ml-1.5 transition-transform group-hover:translate-x-1" width="12" height="12" viewBox="0 0 12 12" fill="none">
-                    <path d="M2 6h8M7 2l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
+                  {t.registro.continuar}
                 </div>
               </Link>
             ))}
           </div>
 
-          <p className="text-center text-xs text-slate-600 mt-8">
-            Al registrarte aceptas nuestros{" "}
-            <a href="#" className="text-emerald-500 hover:underline">términos y condiciones</a>{" "}
+          <p className="text-center text-xs text-muted-foreground/60 mt-8">
+            {t.registro.terminosTexto}{" "}
+            <a href="#" className="text-emerald-500 hover:underline">{t.registro.terminos}</a>{" "}
             y la{" "}
-            <a href="#" className="text-emerald-500 hover:underline">política de privacidad</a>.
+            <a href="#" className="text-emerald-500 hover:underline">{t.registro.privacidad}</a>.
           </p>
         </div>
       </div>

@@ -1,34 +1,39 @@
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
-import { useAuthStore } from "../../store/authStore"
-import { useSolicitudStore } from "../../store/solicitudStore"
-import type { Solicitud } from "../../interfaces/Solicitud"
-import LogoFamilia from "../../components/layout/LogoFamilia"
+import { useAuthStore } from "@/store/authStore"
+import { useSolicitudStore } from "@/store/solicitudStore"
+import type { Solicitud } from "@/interfaces/Solicitud"
+import LogoFamilia from "@/components/layout/LogoFamilia"
+import { useThemeStore } from "@/store/themeStore"
+import { useLangStore } from "@/store/langStore"
+import { useT } from "@/i18n/useT"
 
 const estadoBadge = {
-  pendiente: "bg-amber-500/10 text-amber-400 border border-amber-500/20",
-  aceptada:  "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20",
-  rechazada: "bg-red-500/10 text-red-400 border border-red-500/20",
+  pendiente: "bg-amber-500/10 text-amber-500 border border-amber-500/20",
+  aceptada:  "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20",
+  rechazada: "bg-red-500/10 text-red-500 border border-red-500/20",
 }
 
 const urgenciaBadge = {
-  baja:  "bg-slate-500/10 text-slate-400",
-  media: "bg-amber-500/10 text-amber-400",
-  alta:  "bg-red-500/10 text-red-400",
+  baja:  "bg-muted text-muted-foreground",
+  media: "bg-amber-500/10 text-amber-500",
+  alta:  "bg-red-500/10 text-red-500",
 }
 
 export default function DashboardFamilia() {
   const { usuario, cerrarSesion } = useAuthStore()
   const { solicitudes, cargando, cargarMisSolicitudes } = useSolicitudStore()
+  const { theme, toggleTheme } = useThemeStore()
+  const { lang, toggleLang } = useLangStore()
+  const t = useT()
   const [detalle, setDetalle] = useState<Solicitud | null>(null)
 
   useEffect(() => {
-  cargarMisSolicitudes()
-}, [])
+    cargarMisSolicitudes()
+  }, [])
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     cerrarSesion()
-    window.location.href = "/"
   }
 
   const pendientes = solicitudes.filter((s) => s.estado === "pendiente").length
@@ -39,34 +44,63 @@ export default function DashboardFamilia() {
     ? usuario.nombre!.split(" ")[0].charAt(0).toUpperCase() + usuario.nombre!.split(" ")[0].slice(1).toLowerCase()
     : ""
 
+  const estadoLabel = (estado: string) => {
+    if (estado === "pendiente") return t.dashFamilia.pendienteLabel
+    if (estado === "aceptada")  return t.dashFamilia.aceptadaLabel
+    return t.dashFamilia.rechazadaLabel
+  }
+
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b border-slate-800 px-6 lg:px-8 py-4">
+      <header className="border-b border-border bg-card px-6 lg:px-8 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link to="/" className="flex items-center gap-2">
               <LogoFamilia variante="header" />
-              <span className="text-sm font-semibold text-white">ConciliaEx</span>
+              <span className="text-sm font-semibold text-foreground">ConciliaEx</span>
             </Link>
-            <span className="text-slate-700">·</span>
-            <span className="text-sm text-slate-500">Mi panel</span>
+            <span className="text-muted-foreground/30">·</span>
+            <span className="text-sm text-muted-foreground">{t.nav.miPanel}</span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            {/* Theme toggle */}
+            <button
+              onClick={toggleTheme}
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            >
+              {theme === "dark" ? (
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="5" stroke="currentColor" strokeWidth="1.8"/>
+                  <path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+                </svg>
+              ) : (
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                  <path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              )}
+            </button>
+            {/* Lang toggle */}
+            <button
+              onClick={toggleLang}
+              className="px-2 py-1 rounded-lg text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted border border-border transition-colors"
+            >
+              {lang === "es" ? "EN" : "ES"}
+            </button>
             <Link
               to="/perfil"
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-800 hover:border-slate-700 transition-colors"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border hover:border-border-strong transition-colors"
             >
-              <div className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-xs text-emerald-400 font-medium">
+              <div className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-xs text-emerald-500 font-medium">
                 {usuario?.nombre?.charAt(0).toUpperCase()}
               </div>
-              <span className="text-xs text-slate-400 hidden sm:block">{usuario?.nombre}</span>
+              <span className="text-xs text-muted-foreground hidden sm:block">{usuario?.nombre}</span>
             </Link>
             <button
               onClick={handleLogout}
-              className="px-3 py-1.5 rounded-lg text-xs text-slate-500 hover:text-white hover:bg-slate-800 transition-colors"
+              className="px-3 py-1.5 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             >
-              Salir
+              {t.nav.salir}
             </button>
           </div>
         </div>
@@ -76,102 +110,96 @@ export default function DashboardFamilia() {
         {/* Título */}
         <div className="flex items-start justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-semibold text-white mb-1">
-              Hola, {nombreMostrar} 👋
+            <h1 className="text-2xl font-semibold text-foreground mb-1">
+              {t.dashFamilia.bienvenido} {nombreMostrar} 👋
             </h1>
-            <p className="text-sm text-slate-500">
-              Aquí puedes ver el estado de todas tus solicitudes
+            <p className="text-sm text-muted-foreground">
+              {t.dashFamilia.resumen}
             </p>
           </div>
-          <Link
-            to="/#catalogo"
+          <a
+            href="/#catalogo"
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-medium transition-colors"
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.5"/>
               <path d="M10 10l2.5 2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
             </svg>
-            Buscar servicios
-          </Link>
+            {t.dashFamilia.explorar}
+          </a>
         </div>
 
         {/* KPIs */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
           {[
-            { label: "Pendientes", value: pendientes, color: "text-amber-400" },
-            { label: "Aceptadas",  value: aceptadas,  color: "text-emerald-400" },
-            { label: "Rechazadas", value: rechazadas, color: "text-red-400" },
+            { label: t.dashFamilia.pendientes, value: pendientes, color: "text-amber-500" },
+            { label: t.dashFamilia.aceptadas,  value: aceptadas,  color: "text-emerald-500" },
+            { label: t.dashFamilia.rechazadas, value: rechazadas, color: "text-red-500" },
           ].map((kpi) => (
-            <div key={kpi.label} className="bg-slate-900 border border-slate-800 rounded-xl p-5">
+            <div key={kpi.label} className="bg-card border border-border rounded-xl p-5">
               <div className={`text-2xl font-semibold mb-0.5 ${kpi.color}`}>{kpi.value}</div>
-              <div className="text-sm text-slate-500">{kpi.label}</div>
+              <div className="text-sm text-muted-foreground">{kpi.label}</div>
             </div>
           ))}
         </div>
 
         {/* Lista solicitudes */}
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-slate-300">Mis solicitudes</h2>
-          <span className="text-xs text-slate-600">{solicitudes.length} en total</span>
+          <h2 className="text-sm font-semibold text-foreground">{t.dashFamilia.misSolicitudes}</h2>
+          <span className="text-xs text-muted-foreground">{solicitudes.length} {t.dashFamilia.total}</span>
         </div>
 
         {cargando ? (
           <div className="text-center py-16">
             <div className="w-5 h-5 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin mx-auto mb-3" />
-            <p className="text-sm text-slate-600">Cargando solicitudes...</p>
+            <p className="text-sm text-muted-foreground">...</p>
           </div>
         ) : solicitudes.length === 0 ? (
-          <div className="text-center py-16 border border-dashed border-slate-800 rounded-2xl">
-            <p className="text-sm font-medium text-slate-400 mb-1">
-              Aún no has enviado ninguna solicitud
-            </p>
-            <p className="text-xs text-slate-600 mb-5">
-              Explora los servicios disponibles y solicita una plaza
-            </p>
-            <Link
-              to="/#catalogo"
+          <div className="text-center py-16 border border-dashed border-border rounded-2xl">
+            <p className="text-sm font-medium text-foreground mb-1">{t.dashFamilia.sinSolicitudes}</p>
+            <p className="text-xs text-muted-foreground mb-5">{t.dashFamilia.sinSolicitudesSub}</p>
+            <a
+              href="/#catalogo"
               className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-medium transition-colors"
             >
-              Ver servicios
-            </Link>
+              {t.dashFamilia.explorar}
+            </a>
           </div>
         ) : (
           <div className="space-y-3">
             {solicitudes.map((s: Solicitud) => (
               <div
                 key={s.id}
-                className="bg-slate-900 border border-slate-800 rounded-xl p-5 hover:border-slate-700 transition-colors cursor-pointer"
+                className="bg-card border border-border rounded-xl p-5 hover:border-emerald-500/30 hover:shadow-sm transition-all cursor-pointer"
                 onClick={() => setDetalle(s)}
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <span className="text-sm font-semibold text-white truncate">
-                        {s.servicio?.nombre ?? "Servicio"}
+                      <span className="text-sm font-semibold text-foreground truncate">
+                        {s.servicio?.nombre ?? t.dashFamilia.servicio}
                       </span>
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${estadoBadge[s.estado]}`}>
-                        {s.estado.charAt(0).toUpperCase() + s.estado.slice(1)}
+                        {estadoLabel(s.estado)}
                       </span>
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${urgenciaBadge[s.urgencia]}`}>
-                        Urgencia {s.urgencia}
+                        {s.urgencia}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-500 mb-1">
-                      Familiar: <span className="text-slate-400">{s.nombre_familiar}</span>
-                      {" · "}
-                      {s.tipo_necesidad}
+                    <p className="text-xs text-muted-foreground mb-1">
+                      {s.nombre_familiar} · {s.tipo_necesidad}
                     </p>
-                    <p className="text-xs text-slate-600 line-clamp-1">{s.mensaje}</p>
+                    <p className="text-xs text-muted-foreground/60 line-clamp-1">{s.mensaje}</p>
                   </div>
-                  <span className="text-xs text-slate-600 shrink-0">
-                    {new Date(s.created_at).toLocaleDateString("es-ES")}
+                  <span className="text-xs text-muted-foreground/60 shrink-0">
+                    {new Date(s.created_at).toLocaleDateString(lang === "en" ? "en-GB" : "es-ES")}
                   </span>
                 </div>
 
                 {s.mensaje_respuesta && (
-                  <div className="mt-3 pt-3 border-t border-slate-800">
-                    <p className="text-xs text-slate-500 mb-1 font-medium">Respuesta de la entidad:</p>
-                    <p className="text-xs text-slate-400">{s.mensaje_respuesta}</p>
+                  <div className="mt-3 pt-3 border-t border-border">
+                    <p className="text-xs text-muted-foreground mb-1 font-medium">{t.dashFamilia.mensaje}:</p>
+                    <p className="text-xs text-foreground/80">{s.mensaje_respuesta}</p>
                   </div>
                 )}
               </div>
@@ -187,15 +215,12 @@ export default function DashboardFamilia() {
           onClick={() => setDetalle(null)}
         >
           <div
-            className="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl"
+            className="bg-card border border-border rounded-2xl max-w-md w-full p-6 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start justify-between mb-4">
-              <h2 className="text-base font-semibold text-white">Detalle de solicitud</h2>
-              <button
-                onClick={() => setDetalle(null)}
-                className="text-slate-500 hover:text-white transition-colors"
-              >
+              <h2 className="text-base font-semibold text-foreground">{t.dashFamilia.verDetalle}</h2>
+              <button onClick={() => setDetalle(null)} className="text-muted-foreground hover:text-foreground transition-colors">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                   <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
                 </svg>
@@ -204,37 +229,31 @@ export default function DashboardFamilia() {
 
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
-                <span className="text-slate-500">Servicio</span>
-                <span className="text-white font-medium">{detalle.servicio?.nombre}</span>
+                <span className="text-muted-foreground">{t.dashFamilia.servicio}</span>
+                <span className="text-foreground font-medium">{detalle.servicio?.nombre}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Estado</span>
+                <span className="text-muted-foreground">{t.dashFamilia.estado}</span>
                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${estadoBadge[detalle.estado]}`}>
-                  {detalle.estado.charAt(0).toUpperCase() + detalle.estado.slice(1)}
+                  {estadoLabel(detalle.estado)}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Familiar</span>
-                <span className="text-white">{detalle.nombre_familiar}</span>
+                <span className="text-muted-foreground">{t.dashFamilia.entidad}</span>
+                <span className="text-foreground">{detalle.nombre_familiar}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Necesidad</span>
-                <span className="text-white">{detalle.tipo_necesidad}</span>
+                <span className="text-muted-foreground">{t.dashFamilia.fecha}</span>
+                <span className="text-foreground">{new Date(detalle.created_at).toLocaleDateString(lang === "en" ? "en-GB" : "es-ES")}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Urgencia</span>
-                <span className={`text-xs px-2 py-0.5 rounded-full ${urgenciaBadge[detalle.urgencia]}`}>
-                  {detalle.urgencia.charAt(0).toUpperCase() + detalle.urgencia.slice(1)}
-                </span>
-              </div>
-              <div className="pt-2 border-t border-slate-800">
-                <p className="text-slate-500 mb-1.5">Mensaje enviado</p>
-                <p className="text-slate-300 text-xs leading-relaxed">{detalle.mensaje}</p>
+              <div className="pt-2 border-t border-border">
+                <p className="text-muted-foreground mb-1.5">{t.dashFamilia.mensaje}</p>
+                <p className="text-foreground/80 text-xs leading-relaxed">{detalle.mensaje}</p>
               </div>
               {detalle.mensaje_respuesta && (
-                <div className="pt-2 border-t border-slate-800">
-                  <p className="text-slate-500 mb-1.5">Respuesta de la entidad</p>
-                  <p className="text-slate-300 text-xs leading-relaxed">{detalle.mensaje_respuesta}</p>
+                <div className="pt-2 border-t border-border">
+                  <p className="text-muted-foreground mb-1.5">{t.dashEntidad?.solicitudesRecibidas ?? "Respuesta"}</p>
+                  <p className="text-foreground/80 text-xs leading-relaxed">{detalle.mensaje_respuesta}</p>
                 </div>
               )}
             </div>

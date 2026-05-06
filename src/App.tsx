@@ -1,6 +1,7 @@
 import { useEffect } from "react"
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 import { useAuthStore } from "@/store/authStore"
+import { useThemeStore } from "@/store/themeStore"
 
 // Guards
 import ProtectedRoute from "@/components/auth/ProtectedRoute"
@@ -28,10 +29,13 @@ import Perfil from "@/pages/Perfil"
 
 export default function App() {
   const { inicializar } = useAuthStore()
+  const { aplicar } = useThemeStore()
 
   useEffect(() => {
     inicializar()
-  }, [inicializar])
+    aplicar()
+  }, [inicializar, aplicar])
+
 
   return (
     <BrowserRouter>

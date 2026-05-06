@@ -99,9 +99,10 @@ export class SupabaseAuthRepository implements AuthRepository {
       .eq("id", data.user.id)
       .single()
 
-    if (perfil && !perfil.activo) {
+    // Bloquear si el perfil no existe (cuenta borrada) o está desactivado
+    if (!perfil || !perfil.activo) {
       await supabase.auth.signOut()
-      return { error: "Tu cuenta ha sido desactivada. Contacta con el administrador." }
+      return { error: "Tu cuenta no existe o ha sido desactivada. Contacta con el administrador." }
     }
 
     const metadata = data.user.user_metadata || {}

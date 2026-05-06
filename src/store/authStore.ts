@@ -8,6 +8,8 @@ const authRepo = createAuthRepository()
 
 // Flag para evitar que onAuthStateChange interfiera durante el logout
 let cerrandoSesion = false
+// Unsubscribe del listener de auth para evitar acumulación
+let unsubscribeAuth: (() => void) | null = null
 
 interface AuthState {
   usuario:      Usuario | null
@@ -32,6 +34,12 @@ export const useAuthStore = create<AuthState>()(
         // Si estamos cerrando sesión no hacer nada
         if (cerrandoSesion) return
 
+        // Limpiar listener previo para evitar acumulación
+        if (unsubscribeAuth) {
+          unsubscribeAuth()
+          unsubscribeAuth = null
+        }
+
         const usuario = await authRepo.obtenerUsuarioActual()
 
         if (usuario) {
@@ -41,7 +49,8 @@ export const useAuthStore = create<AuthState>()(
             .eq("id", usuario.id)
             .single()
 
-          if (perfil && !perfil.activo) {
+          // Forzar logout si el perfil no existe (borrado) o está desactivado
+          if (!perfil || !perfil.activo) {
             cerrandoSesion = true
             await supabase.auth.signOut({ scope: "local" })
             cerrandoSesion = false
@@ -52,7 +61,7 @@ export const useAuthStore = create<AuthState>()(
 
         set({ usuario, inicializado: true })
 
-        supabase.auth.onAuthStateChange(async (_event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
           if (cerrandoSesion) return
 
           if (_event === "SIGNED_OUT" || !session) {
@@ -69,7 +78,8 @@ export const useAuthStore = create<AuthState>()(
             .eq("id", u.id)
             .single()
 
-          if (perfil && !perfil.activo) {
+          // Forzar logout si el perfil fue borrado o desactivado mientras estaba conectado
+          if (!perfil || !perfil.activo) {
             cerrandoSesion = true
             await supabase.auth.signOut({ scope: "local" })
             cerrandoSesion = false
@@ -79,6 +89,7 @@ export const useAuthStore = create<AuthState>()(
 
           set({ usuario: u })
         })
+        unsubscribeAuth = () => subscription.unsubscribe()
       },
 
       registrarFamilia: async (datos) => {
@@ -110,6 +121,11 @@ export const useAuthStore = create<AuthState>()(
 
       cerrarSesion: async () => {
         cerrandoSesion = true
+        // Cancelar listener antes de hacer signOut
+        if (unsubscribeAuth) {
+          unsubscribeAuth()
+          unsubscribeAuth = null
+        }
         set({ usuario: null, inicializado: false })
         localStorage.removeItem("conciliaex-auth")
         try {
@@ -117,7 +133,7 @@ export const useAuthStore = create<AuthState>()(
         } catch (e) {
           console.error(e)
         }
-        cerrandoSesion = false
+        // Mantener cerrandoSesion=true hasta que la página recargue
         window.location.replace("/")
       },
     }),

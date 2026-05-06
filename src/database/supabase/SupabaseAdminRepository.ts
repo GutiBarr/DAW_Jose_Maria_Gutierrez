@@ -34,33 +34,56 @@ export class SupabaseAdminRepository implements AdminRepository {
   }
 
   async toggleActivoUsuario(id: string, activo: boolean) {
-    const { error } = await supabase
+    // 1. Actualizar el estado del perfil
+    const { error: errorPerfil } = await supabase
       .from("perfiles")
       .update({ activo })
       .eq("id", id)
 
-    if (error) {
-      console.error("toggleActivoUsuario:", error)
+    if (errorPerfil) {
+      console.error("toggleActivoUsuario:", errorPerfil.message)
       return { error: "No se pudo actualizar el estado" }
+    }
+
+    // 2. Cascada: ocultar/mostrar sus servicios en el catálogo
+    const { error: errorServicios } = await supabase
+      .from("servicios")
+      .update({ activo, updated_at: new Date().toISOString() })
+      .eq("entidad_id", id)
+
+    if (errorServicios) {
+      // No bloqueante — registramos pero el perfil ya quedó actualizado
+      console.error("toggleActivoUsuario (servicios):", errorServicios.message)
     }
 
     return {}
   }
 
   async eliminarUsuario(id: string) {
-  // Desactivar y eliminar perfil (auth.users no se puede borrar desde cliente)
-  const { error } = await supabase
-    .from("perfiles")
-    .update({ activo: false })
-    .eq("id", id)
+    // 1. Borrar primero todos sus servicios (evita servicios huérfanos visibles)
+    const { error: errorServicios } = await supabase
+      .from("servicios")
+      .delete()
+      .eq("entidad_id", id)
 
-  if (error) {
-    console.error("eliminarUsuario:", error)
-    return { error: "No se pudo eliminar el usuario" }
+    if (errorServicios) {
+      console.error("eliminarUsuario (servicios):", errorServicios.message)
+      // Continuamos de todas formas, el perfil se puede borrar
+    }
+
+    // 2. Borrar el perfil
+    const { error } = await supabase
+      .from("perfiles")
+      .delete()
+      .eq("id", id)
+
+    if (error) {
+      console.error("eliminarUsuario:", error.message)
+      return { error: "No se pudo eliminar el usuario" }
+    }
+
+    return {}
   }
-
-  return {}
-}
 
   async obtenerTodosServicios(): Promise<Servicio[]> {
     const { data, error } = await supabase

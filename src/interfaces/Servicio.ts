@@ -19,6 +19,7 @@ export interface Servicio {
   telefono:    string
   imagen_url?: string
   activo:      boolean
+  plazas:      number | null  // null = sin límite de plazas
   visitas:     number
   consultas:   number
   created_at:  string
@@ -32,4 +33,5 @@ export interface DatosCrearServicio {
   ubicacion:   string
   telefono:    string
   imagen_url?: string
+  plazas?:     number | null  // null = sin límite
 }

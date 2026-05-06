@@ -1,45 +1,101 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
+/* ===========================
+   LIGHT MODE — Cálido y humano (A)
+   Fondo crema, teal suave, ámbar
+   =========================== */
 :root {
-  --radius: 0.5rem;
+  --radius: 0.75rem;
 
-  --background:      #0f172a;
-  --foreground:      #f1f5f9;
-  --surface:         #1e293b;
-  --surface-2:       #334155;
+  --background:      #faf7f4;
+  --foreground:      #1c1412;
+  --surface:         #ffffff;
+  --surface-2:       #f2ede8;
 
-  --border:          #1e293b;
-  --border-strong:   #334155;
+  --border:          #e5ddd6;
+  --border-strong:   #cfc4ba;
 
-  --card:            #1e293b;
-  --card-foreground: #f1f5f9;
+  --card:            #ffffff;
+  --card-foreground: #1c1412;
 
-  --primary:         #10b981;
-  --primary-hover:   #059669;
+  --primary:         #0d9488;
+  --primary-hover:   #0f766e;
   --primary-foreground: #ffffff;
 
-  --secondary:       #1e293b;
-  --secondary-foreground: #f1f5f9;
+  --secondary:       #f2ede8;
+  --secondary-foreground: #44312a;
 
-  --muted:           #1e293b;
-  --muted-foreground: #64748b;
+  --muted:           #f4ede7;
+  --muted-foreground: #8c7066;
 
-  --accent:          #064e3b;
-  --accent-foreground: #10b981;
+  --accent:          #fef3c7;
+  --accent-foreground: #92400e;
 
-  --destructive:     #ef4444;
+  --destructive:     #dc2626;
   --destructive-foreground: #ffffff;
 
-  --input:           #1e293b;
-  --ring:            #10b981;
+  --input:           #ffffff;
+  --ring:            #0d9488;
 
-  --text-primary:    #f1f5f9;
-  --text-secondary:  #94a3b8;
-  --text-muted:      #475569;
+  --text-primary:    #1c1412;
+  --text-secondary:  #44312a;
+  --text-muted:      #8c7066;
+
+  --scrollbar-track: #f2ede8;
+  --scrollbar-thumb: #cfc4ba;
+  --scrollbar-thumb-hover: #b5a79c;
+
+  --dot-color: #d9d0c8;
+}
+
+/* ===========================
+   DARK MODE — Sereno y natural (B)
+   Pizarra cálida, teal suave, lavanda
+   =========================== */
+.dark {
+  --background:      #1c1917;
+  --foreground:      #f5f0eb;
+  --surface:         #292524;
+  --surface-2:       #3c3330;
+
+  --border:          #3c3330;
+  --border-strong:   #57534e;
+
+  --card:            #292524;
+  --card-foreground: #f5f0eb;
+
+  --primary:         #2dd4bf;
+  --primary-hover:   #14b8a6;
+  --primary-foreground: #0d2420;
+
+  --secondary:       #292524;
+  --secondary-foreground: #f5f0eb;
+
+  --muted:           #292524;
+  --muted-foreground: #a8988e;
+
+  --accent:          #312e2b;
+  --accent-foreground: #2dd4bf;
+
+  --destructive:     #f87171;
+  --destructive-foreground: #1c0a0a;
+
+  --input:           #312e2b;
+  --ring:            #2dd4bf;
+
+  --text-primary:    #f5f0eb;
+  --text-secondary:  #d4c5bc;
+  --text-muted:      #a8988e;
+
+  --scrollbar-track: #1c1917;
+  --scrollbar-thumb: #3c3330;
+  --scrollbar-thumb-hover: #57534e;
+
+  --dot-color: #2e2a27;
 }
 
 @theme inline {
@@ -62,23 +118,28 @@
   --color-surface:              var(--surface);
   --color-surface-2:            var(--surface-2);
 
-  --radius-sm:   calc(var(--radius) - 2px);
+  --radius-sm:   calc(var(--radius) - 4px);
   --radius-md:   var(--radius);
   --radius-lg:   calc(var(--radius) + 4px);
   --radius-xl:   calc(var(--radius) + 8px);
   --radius-full: 9999px;
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.2s ease;
+}
+
 html { scroll-behavior: smooth; }
 
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Nunito', sans-serif;
   background-color: var(--background);
   color: var(--foreground);
   margin: 0;
-  line-height: 1.6;
+  line-height: 1.65;
   -webkit-font-smoothing: antialiased;
+  letter-spacing: 0.01em;
 }
 
 @layer base {
@@ -86,13 +147,21 @@ body {
   body { @apply bg-background text-foreground; }
 }
 
+/* Sombras suaves en cards */
+.bg-card {
+  box-shadow: 0 2px 16px rgba(28, 20, 18, 0.06), 0 1px 4px rgba(28, 20, 18, 0.04);
+}
+.dark .bg-card {
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3), 0 1px 6px rgba(0, 0, 0, 0.2);
+}
+
 ::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: #0f172a; }
-::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #475569; }
+::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb-hover); }
 
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(16px); }
+  from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 @keyframes fadeIn {
@@ -100,22 +169,40 @@ body {
   to   { opacity: 1; }
 }
 
-.animate-fade-up { animation: fadeUp 0.5s ease-out both; }
+.animate-fade-up { animation: fadeUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .animate-fade-in { animation: fadeIn 0.4s ease-out both; }
 .delay-100 { animation-delay: 0.1s; }
 .delay-200 { animation-delay: 0.2s; }
 .delay-300 { animation-delay: 0.3s; }
 
+/* Gradient text — teal cálido */
 .gradient-text {
-  background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+  background: linear-gradient(135deg, #0d9488 0%, #2dd4bf 50%, #34d399 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.dark .gradient-text {
+  background: linear-gradient(135deg, #2dd4bf 0%, #34d399 60%, #a78bfa 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
+/* Fondo de puntos suaves — reemplaza la cuadrícula fría */
 .bg-grid {
-  background-image:
-    linear-gradient(to right, #1e293b 1px, transparent 1px),
-    linear-gradient(to bottom, #1e293b 1px, transparent 1px);
-  background-size: 40px 40px;
+  background-image: radial-gradient(circle, var(--dot-color) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* Blob decorativo para el Hero */
+.bg-blob {
+  background:
+    radial-gradient(ellipse at 70% 30%, rgba(13, 148, 136, 0.10) 0%, transparent 55%),
+    radial-gradient(ellipse at 15% 85%, rgba(251, 191, 36, 0.07) 0%, transparent 45%);
+}
+.dark .bg-blob {
+  background:
+    radial-gradient(ellipse at 70% 30%, rgba(45, 212, 191, 0.07) 0%, transparent 55%),
+    radial-gradient(ellipse at 15% 85%, rgba(167, 139, 250, 0.05) 0%, transparent 45%);
 }
