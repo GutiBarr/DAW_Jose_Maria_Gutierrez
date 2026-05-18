@@ -2,11 +2,11 @@ import { useEffect, useState } from "react"
 import { useNavigate, Link } from "react-router-dom"
 import { supabase } from "@/database/supabase/Client"
 import LogoFamilia from "@/components/layout/LogoFamilia"
-import { useLangStore } from "@/store/langStore"
+import { useT } from "@/i18n/useT"
 
 export default function NuevaPassword() {
   const navigate = useNavigate()
-  const { lang } = useLangStore()
+  const t = useT()
 
   const [password, setPassword]   = useState("")
   const [confirmar, setConfirmar] = useState("")
@@ -29,11 +29,11 @@ export default function NuevaPassword() {
     setError("")
 
     if (password.length < 6) {
-      setError(lang === "es" ? "La contraseña debe tener al menos 6 caracteres" : "Password must be at least 6 characters")
+      setError(t.registroFamilia.errPassCorta)
       return
     }
     if (password !== confirmar) {
-      setError(lang === "es" ? "Las contraseñas no coinciden" : "Passwords do not match")
+      setError(t.registroFamilia.errPassNoCoinciden)
       return
     }
 
@@ -42,7 +42,7 @@ export default function NuevaPassword() {
     setCargando(false)
 
     if (updateError) {
-      setError(lang === "es" ? "No se pudo actualizar la contraseña. Inténtalo de nuevo." : "Could not update password. Please try again.")
+      setError(t.nuevaPassword.errorActualizar)
       return
     }
 
@@ -59,16 +59,10 @@ export default function NuevaPassword() {
               <path d="M5 13l4 4L19 7" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </div>
-          <h1 className="text-xl font-semibold text-foreground mb-2">
-            {lang === "es" ? "Contraseña actualizada" : "Password updated"}
-          </h1>
-          <p className="text-sm text-muted-foreground mb-6">
-            {lang === "es"
-              ? "Tu contraseña se ha cambiado correctamente. Redirigiendo al inicio de sesión..."
-              : "Your password has been changed successfully. Redirecting to sign in..."}
-          </p>
+          <h1 className="text-xl font-semibold text-foreground mb-2">{t.nuevaPassword.exitoTitulo}</h1>
+          <p className="text-sm text-muted-foreground mb-6">{t.nuevaPassword.exitoDesc}</p>
           <Link to="/login" className="text-sm text-emerald-500 hover:text-emerald-400 transition-colors">
-            {lang === "es" ? "Ir al inicio de sesión" : "Go to sign in"}
+            {t.nuevaPassword.irLogin}
           </Link>
         </div>
       </div>
@@ -80,9 +74,7 @@ export default function NuevaPassword() {
       <div className="min-h-screen bg-background flex items-center justify-center px-6">
         <div className="w-full max-w-sm text-center">
           <div className="w-5 h-5 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-sm text-muted-foreground">
-            {lang === "es" ? "Verificando enlace..." : "Verifying link..."}
-          </p>
+          <p className="text-sm text-muted-foreground">{t.nuevaPassword.verificando}</p>
         </div>
       </div>
     )
@@ -104,14 +96,8 @@ export default function NuevaPassword() {
               <path d="M7 11V7a5 5 0 0110 0v4" stroke="#10b981" strokeWidth="1.8" strokeLinecap="round"/>
             </svg>
           </div>
-          <h2 className="text-3xl font-semibold text-foreground leading-snug mb-4">
-            {lang === "es" ? "Nueva contraseña" : "New password"}
-          </h2>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            {lang === "es"
-              ? "Elige una contraseña segura de al menos 6 caracteres."
-              : "Choose a secure password of at least 6 characters."}
-          </p>
+          <h2 className="text-3xl font-semibold text-foreground leading-snug mb-4">{t.nuevaPassword.titulo}</h2>
+          <p className="text-sm text-muted-foreground leading-relaxed">{t.nuevaPassword.subtituloLeft}</p>
         </div>
 
         <p className="text-xs text-muted-foreground/40">© {new Date().getFullYear()} ConciliaEx</p>
@@ -125,19 +111,13 @@ export default function NuevaPassword() {
               <LogoFamilia variante="header" />
               <span className="text-sm font-semibold text-foreground">ConciliaEx</span>
             </Link>
-            <h1 className="text-2xl font-semibold text-foreground mb-1.5">
-              {lang === "es" ? "Elige una nueva contraseña" : "Choose a new password"}
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              {lang === "es" ? "Mínimo 6 caracteres." : "At least 6 characters."}
-            </p>
+            <h1 className="text-2xl font-semibold text-foreground mb-1.5">{t.nuevaPassword.tituloForm}</h1>
+            <p className="text-sm text-muted-foreground">{t.nuevaPassword.minCaracteres}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">
-                {lang === "es" ? "Nueva contraseña" : "New password"}
-              </label>
+              <label className="text-xs font-medium text-muted-foreground">{t.perfil.passwordNueva}</label>
               <div className="relative">
                 <input
                   type={showPass ? "text" : "password"}
@@ -149,15 +129,13 @@ export default function NuevaPassword() {
                 />
                 <button type="button" onClick={() => setShowPass(!showPass)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-foreground transition-colors">
-                  {showPass ? (lang === "es" ? "Ocultar" : "Hide") : (lang === "es" ? "Ver" : "Show")}
+                  {showPass ? t.login.ocultar : t.login.ver}
                 </button>
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">
-                {lang === "es" ? "Confirmar contraseña" : "Confirm password"}
-              </label>
+              <label className="text-xs font-medium text-muted-foreground">{t.perfil.passwordConfirmar}</label>
               <div className="relative">
                 <input
                   type={showConf ? "text" : "password"}
@@ -169,7 +147,7 @@ export default function NuevaPassword() {
                 />
                 <button type="button" onClick={() => setShowConf(!showConf)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-foreground transition-colors">
-                  {showConf ? (lang === "es" ? "Ocultar" : "Hide") : (lang === "es" ? "Ver" : "Show")}
+                  {showConf ? t.login.ocultar : t.login.ver}
                 </button>
               </div>
             </div>
@@ -189,9 +167,7 @@ export default function NuevaPassword() {
               disabled={cargando}
               className="w-full h-10 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-semibold transition-colors disabled:opacity-50"
             >
-              {cargando
-                ? (lang === "es" ? "Guardando..." : "Saving...")
-                : (lang === "es" ? "Guardar nueva contraseña" : "Save new password")}
+              {cargando ? t.nuevaPassword.guardando : t.nuevaPassword.guardar}
             </button>
           </form>
         </div>

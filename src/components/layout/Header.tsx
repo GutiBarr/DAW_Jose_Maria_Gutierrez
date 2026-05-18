@@ -92,20 +92,17 @@ export default function Header({ variant = "landing", subtitle }: HeaderProps) {
             </nav>
           )}
 
-          {/* Nav desktop - enlace a Catálogo en dashboard */}
-          {isDashboard && (
-            <nav className="hidden md:flex items-center gap-1">
+          {/* Actions */}
+          <div className="hidden md:flex items-center gap-2">
+            {/* Enlace a Catálogo en dashboard */}
+            {isDashboard && (
               <Link
                 to="/catalogo"
                 className="px-3.5 py-1.5 rounded-lg text-sm font-medium text-emerald-500 hover:bg-emerald-500/10 border border-emerald-500/20 transition-colors"
               >
                 {t.nav.servicios}
               </Link>
-            </nav>
-          )}
-
-          {/* Actions */}
-          <div className="hidden md:flex items-center gap-2">
+            )}
             {/* Theme toggle */}
             <button
               onClick={toggleTheme}
@@ -237,14 +234,14 @@ export default function Header({ variant = "landing", subtitle }: HeaderProps) {
                     <circle cx="12" cy="12" r="5" stroke="currentColor" strokeWidth="1.8"/>
                     <path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
                   </svg>
-                  <span>{lang === "es" ? "Modo claro" : "Light mode"}</span>
+                  <span>{t.nav.modoClaro}</span>
                 </>
               ) : (
                 <>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
                     <path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
-                  <span>{lang === "es" ? "Modo oscuro" : "Dark mode"}</span>
+                  <span>{t.nav.modoOscuro}</span>
                 </>
               )}
             </button>

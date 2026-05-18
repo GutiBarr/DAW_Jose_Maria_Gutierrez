@@ -5,23 +5,14 @@ import { usePerfilStore } from "@/store/perfilStore"
 import type { Solicitud } from "@/interfaces/Solicitud"
 import { useLangStore } from "@/store/langStore"
 import { useT } from "@/i18n/useT"
+import { estadoBadge, urgenciaBadge } from "@/lib/constants"
+import { inputClass } from "@/lib/styles"
+import { useSolicitudesFiltro } from "@/hooks/useSolicitudesFiltro"
 import DashboardHeader from "@/components/dashboard/DashboardHeader"
 import KpiCard from "@/components/dashboard/KpiCard"
 import EmptyState from "@/components/dashboard/EmptyState"
 import LoadingSpinner from "@/components/dashboard/LoadingSpinner"
 import Modal, { ModalHeader } from "@/components/dashboard/Modal"
-
-const estadoBadge = {
-  pendiente: "bg-amber-500/10 text-amber-500 border border-amber-500/20",
-  aceptada:  "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20",
-  rechazada: "bg-red-500/10 text-red-500 border border-red-500/20",
-}
-
-const urgenciaBadge = {
-  baja:  "bg-muted text-muted-foreground",
-  media: "bg-amber-500/10 text-amber-500",
-  alta:  "bg-red-500/10 text-red-500",
-}
 
 export default function DashboardFamilia() {
   const { usuario } = useAuthStore()
@@ -30,8 +21,7 @@ export default function DashboardFamilia() {
   const { lang } = useLangStore()
   const t = useT()
   const [detalle, setDetalle] = useState<Solicitud | null>(null)
-  const [filtroEstado, setFiltroEstado] = useState<string>("todos")
-  const [busqueda, setBusqueda] = useState<string>("")
+  const { filtroEstado, setFiltroEstado, busqueda, setBusqueda, solicitudesFiltradas } = useSolicitudesFiltro(solicitudes)
 
   useEffect(() => {
     if (usuario?.id) {
@@ -54,15 +44,6 @@ export default function DashboardFamilia() {
     if (estado === "aceptada")  return t.dashFamilia.aceptadaLabel
     return t.dashFamilia.rechazadaLabel
   }
-
-  const solicitudesFiltradas = solicitudes.filter((s) => {
-    const coincideEstado = filtroEstado === "todos" || s.estado === filtroEstado
-    const searchLower = busqueda.toLowerCase()
-    const coincideTexto = 
-      (s.servicio?.nombre?.toLowerCase() ?? "").includes(searchLower) ||
-      (s.nombre_familiar.toLowerCase() ?? "").includes(searchLower)
-    return coincideEstado && coincideTexto
-  })
 
   return (
     <div className="min-h-screen bg-background">
@@ -105,17 +86,17 @@ export default function DashboardFamilia() {
           <div className="flex flex-col sm:flex-row gap-2">
             <input
               type="text"
-              placeholder={lang === "es" ? "Buscar por servicio o entidad..." : "Search by service or entity..."}
+              placeholder={t.dashFamilia.buscar}
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
-              className="w-full sm:w-64 h-9 px-3 rounded-lg border border-border bg-input text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
+              className={`${inputClass} sm:w-64`}
             />
             <select
               value={filtroEstado}
               onChange={(e) => setFiltroEstado(e.target.value)}
-              className="w-full sm:w-auto h-9 px-3 rounded-lg border border-border bg-input text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
+              className={`${inputClass} sm:w-auto`}
             >
-              <option value="todos">{lang === "es" ? "Todos los estados" : "All states"}</option>
+              <option value="todos">{t.dashFamilia.todosEstados}</option>
               <option value="pendiente">{t.dashFamilia.pendienteLabel}</option>
               <option value="aceptada">{t.dashFamilia.aceptadaLabel}</option>
               <option value="rechazada">{t.dashFamilia.rechazadaLabel}</option>
@@ -138,8 +119,8 @@ export default function DashboardFamilia() {
           />
         ) : solicitudesFiltradas.length === 0 ? (
           <EmptyState
-            title={lang === "es" ? "No se encontraron solicitudes" : "No requests found"}
-            subtitle={lang === "es" ? "Intenta con otros filtros de búsqueda" : "Try with different search filters"}
+            title={t.dashFamilia.noSolicitudes}
+            subtitle={t.dashFamilia.noFiltros}
           />
         ) : (
           <div className="space-y-3">

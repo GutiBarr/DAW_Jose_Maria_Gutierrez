@@ -1,18 +1,22 @@
 import { useEffect, useState } from "react"
-import { Link } from "react-router-dom"
 import { useAuthStore } from "@/store/authStore"
 import { useAdminStore } from "@/store/adminStore"
 import { usePerfilStore } from "@/store/perfilStore"
 import type { Perfil } from "@/interfaces/Perfil"
 import type { Servicio } from "@/interfaces/Servicio"
 import type { RolUsuario } from "@/interfaces/Usuario"
-import { useLangStore } from "@/store/langStore"
 import { useT } from "@/i18n/useT"
+import { TIPOS_SERVICIO } from "@/lib/constants"
+import { inputClass } from "@/lib/styles"
+import { useAdminFiltros } from "@/hooks/useAdminFiltros"
 import DashboardHeader from "@/components/dashboard/DashboardHeader"
 import KpiCard from "@/components/dashboard/KpiCard"
 import TabBar from "@/components/dashboard/TabBar"
 import LoadingSpinner from "@/components/dashboard/LoadingSpinner"
 import Modal from "@/components/dashboard/Modal"
+import StatusBadge from "@/components/dashboard/StatusBadge"
+import ToggleActivoButton from "@/components/dashboard/ToggleActivoButton"
+import DataTable, { type Column } from "@/components/dashboard/DataTable"
 
 type Pestaña = "usuarios" | "servicios"
 const ROLES: RolUsuario[] = ["familia", "entidad", "admin"]
@@ -30,12 +34,22 @@ export default function DashboardAdmin() {
     cargarPerfiles, cambiarRol, toggleActivoUsuario, eliminarUsuario,
     cargarTodosServicios, eliminarServicio, toggleActivoServicio,
   } = useAdminStore()
-  const { perfil, cargarPerfil } = usePerfilStore()
-  const { lang } = useLangStore()
+  const { cargarPerfil } = usePerfilStore()
   const t = useT()
 
   const [pestaña, setPestaña] = useState<Pestaña>("usuarios")
   const [confirm, setConfirm] = useState<AccionConfirm | null>(null)
+
+  const {
+    busquedaUsuarios,      setBusquedaUsuarios,
+    filtroRol,             setFiltroRol,
+    filtroActivoUsuarios,  setFiltroActivoUsuarios,
+    perfilesFiltrados,
+    busquedaServicios,     setBusquedaServicios,
+    filtroTipo,            setFiltroTipo,
+    filtroActivoServicios, setFiltroActivoServicios,
+    serviciosFiltrados,
+  } = useAdminFiltros(perfiles, servicios)
 
   useEffect(() => {
     if (usuario?.id) {
@@ -44,8 +58,6 @@ export default function DashboardAdmin() {
       cargarPerfil()
     }
   }, [usuario?.id]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const nombreAdmin = perfil?.nombre ?? usuario?.email ?? ""
 
   const totalFamilias  = perfiles.filter((p) => p.rol === "familia").length
   const totalEntidades = perfiles.filter((p) => p.rol === "entidad").length
@@ -61,12 +73,10 @@ export default function DashboardAdmin() {
 
   const modalConfig = confirm ? {
     "eliminar-usuario": {
-      titulo:    lang === "es" ? "Eliminar cuenta" : "Delete account",
-      desc:      lang === "es"
-        ? `¿Estás seguro de que quieres eliminar la cuenta de "${confirm.nombre}"? Esta acción no se puede deshacer y eliminará también todos sus servicios.`
-        : `Are you sure you want to delete "${confirm.nombre}"'s account? This action cannot be undone and will also delete all their services.`,
+      titulo:    t.dashAdmin.eliminarCuenta,
+      desc:      t.dashAdmin.confirmarEliminarCuenta(confirm.nombre),
       btnColor:  "bg-red-500 hover:bg-red-600 text-white",
-      btnLabel:  lang === "es" ? "Sí, eliminar" : "Yes, delete",
+      btnLabel:  t.dashAdmin.siEliminar,
       iconColor: "bg-red-500/10",
       icon: (
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="text-red-500">
@@ -75,12 +85,10 @@ export default function DashboardAdmin() {
       ),
     },
     "desactivar-usuario": {
-      titulo:    lang === "es" ? "Desactivar cuenta" : "Deactivate account",
-      desc:      lang === "es"
-        ? `¿Estás seguro de que quieres desactivar la cuenta de "${confirm.nombre}"? Sus servicios dejarán de aparecer en el catálogo.`
-        : `Are you sure you want to deactivate "${confirm.nombre}"'s account? Their services will be hidden from the catalog.`,
+      titulo:    t.dashAdmin.desactivarCuenta,
+      desc:      t.dashAdmin.confirmarDesactivar(confirm.nombre),
       btnColor:  "bg-amber-500 hover:bg-amber-600 text-white",
-      btnLabel:  lang === "es" ? "Sí, desactivar" : "Yes, deactivate",
+      btnLabel:  t.dashAdmin.siDesactivar,
       iconColor: "bg-amber-500/10",
       icon: (
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="text-amber-500">
@@ -90,12 +98,10 @@ export default function DashboardAdmin() {
       ),
     },
     "eliminar-servicio": {
-      titulo:    lang === "es" ? "Eliminar servicio" : "Delete service",
-      desc:      lang === "es"
-        ? `¿Estás seguro de que quieres eliminar el servicio "${confirm.nombre}"? Esta acción no se puede deshacer.`
-        : `Are you sure you want to delete the service "${confirm.nombre}"? This action cannot be undone.`,
+      titulo:    t.dashAdmin.eliminarServicio,
+      desc:      t.dashAdmin.confirmarEliminarServicio(confirm.nombre),
       btnColor:  "bg-red-500 hover:bg-red-600 text-white",
-      btnLabel:  lang === "es" ? "Sí, eliminar" : "Yes, delete",
+      btnLabel:  t.dashAdmin.siEliminar,
       iconColor: "bg-red-500/10",
       icon: (
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="text-red-500">
@@ -120,7 +126,7 @@ export default function DashboardAdmin() {
             <div className="flex gap-3 justify-end">
               <button onClick={() => setConfirm(null)}
                 className="px-5 py-2.5 rounded-xl border border-border hover:border-border-strong text-muted-foreground hover:text-foreground text-sm font-medium transition-colors">
-                {lang === "es" ? "Cancelar" : "Cancel"}
+                {t.dashAdmin.cancelar}
               </button>
               <button onClick={handleConfirm}
                 className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-colors shadow-sm ${modalConfig.btnColor}`}>
@@ -131,7 +137,6 @@ export default function DashboardAdmin() {
         </Modal>
       )}
 
-      {/* Header unificado */}
       <DashboardHeader subtitle={t.dashAdmin.titulo} />
 
       {adminError && (
@@ -149,177 +154,208 @@ export default function DashboardAdmin() {
       <main className={`max-w-7xl mx-auto px-6 lg:px-8 pb-10 ${adminError ? "pt-6" : "pt-28"}`}>
         <div className="mb-8">
           <h1 className="text-2xl font-semibold text-foreground mb-1">{t.dashAdmin.titulo}</h1>
-          <p className="text-sm text-muted-foreground">
-            {lang === "es" ? "Gestiona usuarios y servicios de la plataforma" : "Manage platform users and services"}
-          </p>
+          <p className="text-sm text-muted-foreground">{t.dashAdmin.descripcion}</p>
         </div>
 
         {/* KPIs */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-          <KpiCard label={t.dashAdmin.usuarios} value={perfiles.length} />
-          <KpiCard label={lang === "es" ? "Familias" : "Families"} value={totalFamilias} />
-          <KpiCard label={t.dashAdmin.entidades} value={totalEntidades} />
-          <KpiCard label={t.dashAdmin.servicios} value={totalActivos} />
+          <KpiCard label={t.dashAdmin.usuarios}   value={perfiles.length} />
+          <KpiCard label={t.dashAdmin.familias}   value={totalFamilias} />
+          <KpiCard label={t.dashAdmin.entidades}  value={totalEntidades} />
+          <KpiCard label={t.dashAdmin.servicios}                      value={totalActivos} />
         </div>
 
         {/* Pestañas */}
         <TabBar<Pestaña>
           tabs={[
-            { key: "usuarios", label: `${t.dashAdmin.usuarios} (${perfiles.length})` },
-            { key: "servicios", label: `${t.dashAdmin.servicios} (${servicios.length})` }
+            { key: "usuarios",  label: `${t.dashAdmin.usuarios} (${perfiles.length})` },
+            { key: "servicios", label: `${t.dashAdmin.servicios} (${servicios.length})` },
           ]}
           active={pestaña}
           onChange={setPestaña}
         />
 
+        {/* Filtros usuarios */}
+        {pestaña === "usuarios" && (
+          <div className="flex flex-col sm:flex-row gap-2 mb-4">
+            <input
+              type="text"
+              placeholder={t.dashAdmin.buscarUsuarios}
+              value={busquedaUsuarios}
+              onChange={(e) => setBusquedaUsuarios(e.target.value)}
+              className={`${inputClass} sm:w-64`}
+            />
+            <select value={filtroRol} onChange={(e) => setFiltroRol(e.target.value as typeof filtroRol)} className={`${inputClass} sm:w-36`}>
+              <option value="todos">{t.dashAdmin.todosRoles}</option>
+              <option value="familia">Familia</option>
+              <option value="entidad">Entidad</option>
+              <option value="admin">Admin</option>
+            </select>
+            <select value={filtroActivoUsuarios} onChange={(e) => setFiltroActivoUsuarios(e.target.value as typeof filtroActivoUsuarios)} className={`${inputClass} sm:w-36`}>
+              <option value="todos">{t.dashAdmin.todosEstados}</option>
+              <option value="activo">{t.dashAdmin.activo}</option>
+              <option value="inactivo">{t.dashAdmin.inactivo}</option>
+            </select>
+            <span className="text-xs text-muted-foreground self-center ml-auto shrink-0">
+              {perfilesFiltrados.length} / {perfiles.length}
+            </span>
+          </div>
+        )}
+
+        {/* Filtros servicios */}
+        {pestaña === "servicios" && (
+          <div className="flex flex-col sm:flex-row gap-2 mb-4">
+            <input
+              type="text"
+              placeholder={t.dashAdmin.buscarServicios}
+              value={busquedaServicios}
+              onChange={(e) => setBusquedaServicios(e.target.value)}
+              className={`${inputClass} sm:w-64`}
+            />
+            <select value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)} className={`${inputClass} sm:w-48`}>
+              <option value="todos">{t.dashAdmin.todosTipos}</option>
+              {TIPOS_SERVICIO.map((tp) => <option key={tp} value={tp}>{tp}</option>)}
+            </select>
+            <select value={filtroActivoServicios} onChange={(e) => setFiltroActivoServicios(e.target.value as typeof filtroActivoServicios)} className={`${inputClass} sm:w-36`}>
+              <option value="todos">{t.dashAdmin.todosEstados}</option>
+              <option value="activo">{t.dashAdmin.activo}</option>
+              <option value="inactivo">{t.dashAdmin.inactivo}</option>
+            </select>
+            <span className="text-xs text-muted-foreground self-center ml-auto shrink-0">
+              {serviciosFiltrados.length} / {servicios.length}
+            </span>
+          </div>
+        )}
+
         {cargando ? (
           <LoadingSpinner />
         ) : pestaña === "usuarios" ? (
-
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t.dashAdmin.nombre}</th>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t.dashAdmin.rol}</th>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t.dashAdmin.estado}</th>
-                  <th className="text-right px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t.dashAdmin.acciones}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {perfiles.map((p: Perfil) => (
-                  <tr key={p.id} className="hover:bg-muted/40 transition-colors">
-                    <td className="px-5 py-3.5">
-                      <div className="font-medium text-foreground truncate max-w-[200px] flex items-center gap-2">
-                        {p.nombre ?? p.nombre_entidad ?? "—"}
-                        {p.id === usuario?.id && (
-                          <span className="text-xs px-1.5 py-0.5 rounded bg-violet-500/10 text-violet-500 border border-violet-500/20 font-medium">
-                            {lang === "es" ? "Tú" : "You"}
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-xs text-muted-foreground truncate max-w-[200px]">{p.email}</div>
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <select value={p.rol}
-                        onChange={(e) => cambiarRol(p.id, e.target.value as RolUsuario)}
-                        disabled={p.id === usuario?.id}
-                        className="text-xs border border-border rounded-lg px-2 py-1 bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                        {ROLES.map((r) => <option key={r}>{r}</option>)}
-                      </select>
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <span className={`inline-flex items-center gap-1.5 text-xs px-2 py-0.5 rounded-full font-medium ${
-                        p.activo
-                          ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
-                          : "bg-muted text-muted-foreground border border-border"
-                      }`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${p.activo ? "bg-emerald-500" : "bg-muted-foreground/40"}`} />
-                        {p.activo ? t.dashAdmin.activo : t.dashAdmin.inactivo}
+          <DataTable<Perfil>
+            data={perfilesFiltrados}
+            keyExtractor={(p) => p.id}
+            emptyMessage={t.dashAdmin.sinDatos}
+            columns={[
+              {
+                key: "nombre", header: t.dashAdmin.nombre,
+                render: (p) => (
+                  <>
+                    <div className="font-medium text-foreground truncate max-w-[200px] flex items-center gap-2">
+                      {p.nombre ?? p.nombre_entidad ?? "—"}
+                      {p.id === usuario?.id && (
+                        <span className="text-xs px-1.5 py-0.5 rounded bg-violet-500/10 text-violet-500 border border-violet-500/20 font-medium">
+                          {t.dashAdmin.tu}
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-xs text-muted-foreground truncate max-w-[200px]">{p.email}</div>
+                  </>
+                ),
+              },
+              {
+                key: "rol", header: t.dashAdmin.rol,
+                render: (p) => (
+                  <select value={p.rol}
+                    onChange={(e) => cambiarRol(p.id, e.target.value as RolUsuario)}
+                    disabled={p.id === usuario?.id}
+                    className="text-xs border border-border rounded-lg px-2 py-1 bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                    {ROLES.map((r) => <option key={r}>{r}</option>)}
+                  </select>
+                ),
+              },
+              {
+                key: "estado", header: t.dashAdmin.estado,
+                render: (p) => (
+                  <StatusBadge activo={p.activo} labelActivo={t.dashAdmin.activo} labelInactivo={t.dashAdmin.inactivo} />
+                ),
+              },
+              {
+                key: "acciones", header: t.dashAdmin.acciones, align: "right",
+                render: (p) => (
+                  <div className="flex items-center justify-end gap-2">
+                    {p.id !== usuario?.id && p.activo && (
+                      <button
+                        onClick={() => setConfirm({ tipo: "desactivar-usuario", id: p.id, nombre: p.nombre ?? p.nombre_entidad ?? p.email })}
+                        className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/25 hover:border-amber-500/40 transition-colors">
+                        {t.dashAdmin.desactivar}
+                      </button>
+                    )}
+                    {p.id !== usuario?.id && !p.activo && (
+                      <button onClick={() => toggleActivoUsuario(p.id, true)}
+                        className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 hover:border-emerald-500/40 transition-colors">
+                        {t.dashAdmin.activar}
+                      </button>
+                    )}
+                    {p.id !== usuario?.id && (
+                      <button
+                        onClick={() => setConfirm({ tipo: "eliminar-usuario", id: p.id, nombre: p.nombre ?? p.nombre_entidad ?? p.email })}
+                        className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/25 hover:border-red-500/40 transition-colors">
+                        {t.dashAdmin.eliminar}
+                      </button>
+                    )}
+                    {p.id === usuario?.id && (
+                      <span className="text-xs text-muted-foreground/50 italic">
+                        {t.dashAdmin.tuCuenta}
                       </span>
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <div className="flex items-center justify-end gap-2">
-                        {p.id !== usuario?.id && p.activo && (
-                          <button
-                            onClick={() => setConfirm({ tipo: "desactivar-usuario", id: p.id, nombre: p.nombre ?? p.nombre_entidad ?? p.email })}
-                            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/25 hover:border-amber-500/40 transition-colors">
-                            {t.dashAdmin.desactivar}
-                          </button>
-                        )}
-                        {p.id !== usuario?.id && !p.activo && (
-                          <button onClick={() => toggleActivoUsuario(p.id, true)}
-                            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 hover:border-emerald-500/40 transition-colors">
-                            {t.dashAdmin.activar}
-                          </button>
-                        )}
-                        {p.id !== usuario?.id && (
-                          <button
-                            onClick={() => setConfirm({ tipo: "eliminar-usuario", id: p.id, nombre: p.nombre ?? p.nombre_entidad ?? p.email })}
-                            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/25 hover:border-red-500/40 transition-colors">
-                            {lang === "es" ? "Eliminar" : "Delete"}
-                          </button>
-                        )}
-                        {p.id === usuario?.id && (
-                          <span className="text-xs text-muted-foreground/50 italic">
-                            {lang === "es" ? "Tu cuenta" : "Your account"}
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {perfiles.length === 0 && (
-              <p className="text-sm text-muted-foreground text-center py-10">{t.dashAdmin.sinDatos}</p>
-            )}
-          </div>
-
+                    )}
+                  </div>
+                ),
+              },
+            ] satisfies Column<Perfil>[]}
+          />
         ) : (
-
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">{lang === "es" ? "Servicio" : "Service"}</th>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">{lang === "es" ? "Tipo" : "Type"}</th>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t.dashAdmin.estado}</th>
-                  <th className="text-right px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t.dashAdmin.acciones}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {servicios.map((s: Servicio) => (
-                  <tr key={s.id} className="hover:bg-muted/40 transition-colors">
-                    <td className="px-5 py-3.5">
-                      <div className="font-medium text-foreground truncate max-w-[200px]">{s.nombre}</div>
-                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                          <path d="M6 1C4.067 1 2.5 2.567 2.5 4.5c0 2.625 3.5 6.5 3.5 6.5s3.5-3.875 3.5-6.5C9.5 2.567 7.933 1 6 1z" stroke="currentColor" strokeWidth="1.2"/>
-                          <circle cx="6" cy="4.5" r="1" stroke="currentColor" strokeWidth="1.2"/>
-                        </svg>
-                        {s.ubicacion}
-                      </div>
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 font-medium">
-                        {s.tipo}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <span className={`inline-flex items-center gap-1.5 text-xs px-2 py-0.5 rounded-full font-medium ${
-                        s.activo
-                          ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
-                          : "bg-muted text-muted-foreground border border-border"
-                      }`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${s.activo ? "bg-emerald-500" : "bg-muted-foreground/40"}`} />
-                        {s.activo ? t.dashAdmin.activo : t.dashAdmin.inactivo}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <div className="flex items-center justify-end gap-2">
-                        <button onClick={() => toggleActivoServicio(s.id, !s.activo)}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
-                            s.activo
-                              ? "bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/25 hover:border-amber-500/40"
-                              : "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/25 hover:border-emerald-500/40"
-                          }`}>
-                          {s.activo ? t.dashAdmin.desactivar : t.dashAdmin.activar}
-                        </button>
-                        <button onClick={() => setConfirm({ tipo: "eliminar-servicio", id: s.id, nombre: s.nombre })}
-                          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/25 hover:border-red-500/40 transition-colors">
-                          {lang === "es" ? "Eliminar" : "Delete"}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {servicios.length === 0 && (
-              <p className="text-sm text-muted-foreground text-center py-10">{t.dashAdmin.sinDatos}</p>
-            )}
-          </div>
+          <DataTable<Servicio>
+            data={serviciosFiltrados}
+            keyExtractor={(s) => s.id}
+            emptyMessage={t.dashAdmin.sinDatos}
+            columns={[
+              {
+                key: "servicio", header: t.dashFamilia.servicio,
+                render: (s) => (
+                  <>
+                    <div className="font-medium text-foreground truncate max-w-[200px]">{s.nombre}</div>
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
+                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                        <path d="M6 1C4.067 1 2.5 2.567 2.5 4.5c0 2.625 3.5 6.5 3.5 6.5s3.5-3.875 3.5-6.5C9.5 2.567 7.933 1 6 1z" stroke="currentColor" strokeWidth="1.2"/>
+                        <circle cx="6" cy="4.5" r="1" stroke="currentColor" strokeWidth="1.2"/>
+                      </svg>
+                      {s.ubicacion}
+                    </div>
+                  </>
+                ),
+              },
+              {
+                key: "tipo", header: t.dashEntidad.tipo,
+                render: (s) => (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 font-medium">
+                    {s.tipo}
+                  </span>
+                ),
+              },
+              {
+                key: "estado", header: t.dashAdmin.estado,
+                render: (s) => (
+                  <StatusBadge activo={s.activo} labelActivo={t.dashAdmin.activo} labelInactivo={t.dashAdmin.inactivo} />
+                ),
+              },
+              {
+                key: "acciones", header: t.dashAdmin.acciones, align: "right",
+                render: (s) => (
+                  <div className="flex items-center justify-end gap-2">
+                    <ToggleActivoButton
+                      activo={s.activo}
+                      labelActivar={t.dashAdmin.activar}
+                      labelDesactivar={t.dashAdmin.desactivar}
+                      onClick={() => toggleActivoServicio(s.id, !s.activo)}
+                    />
+                    <button onClick={() => setConfirm({ tipo: "eliminar-servicio", id: s.id, nombre: s.nombre })}
+                      className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/25 hover:border-red-500/40 transition-colors">
+                      {t.dashAdmin.eliminar}
+                    </button>
+                  </div>
+                ),
+              },
+            ] satisfies Column<Servicio>[]}
+          />
         )}
       </main>
     </div>

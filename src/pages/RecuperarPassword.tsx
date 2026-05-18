@@ -2,10 +2,10 @@ import { useState } from "react"
 import { Link } from "react-router-dom"
 import { supabase } from "@/database/supabase/Client"
 import LogoFamilia from "@/components/layout/LogoFamilia"
-import { useLangStore } from "@/store/langStore"
+import { useT } from "@/i18n/useT"
 
 export default function RecuperarPassword() {
-  const { lang } = useLangStore()
+  const t = useT()
   const [email, setEmail]       = useState("")
   const [enviado, setEnviado]   = useState(false)
   const [cargando, setCargando] = useState(false)
@@ -23,9 +23,7 @@ export default function RecuperarPassword() {
     setCargando(false)
 
     if (resetError) {
-      setError(lang === "es"
-        ? "No se pudo enviar el correo. Comprueba el email introducido."
-        : "Could not send the email. Check the address entered.")
+      setError(t.recuperarPassword.error)
       return
     }
 
@@ -41,19 +39,15 @@ export default function RecuperarPassword() {
               <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" stroke="#10b981" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </div>
-          <h1 className="text-xl font-semibold text-foreground mb-2">
-            {lang === "es" ? "Correo enviado" : "Email sent"}
-          </h1>
+          <h1 className="text-xl font-semibold text-foreground mb-2">{t.recuperarPassword.exitoTitulo}</h1>
           <p className="text-sm text-muted-foreground mb-8 leading-relaxed">
-            {lang === "es"
-              ? `Hemos enviado un enlace de recuperación a ${email}. Revisa tu bandeja de entrada y sigue las instrucciones.`
-              : `We've sent a recovery link to ${email}. Check your inbox and follow the instructions.`}
+            {t.recuperarPassword.exitoDesc(email)}
           </p>
           <Link
             to="/login"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border border-border hover:border-border-strong text-muted-foreground hover:text-foreground text-sm transition-colors"
           >
-            {lang === "es" ? "Volver al inicio de sesión" : "Back to sign in"}
+            {t.recuperarPassword.volverLogin}
           </Link>
         </div>
       </div>
@@ -68,7 +62,7 @@ export default function RecuperarPassword() {
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
             <path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
-          {lang === "es" ? "Volver" : "Back"}
+          {t.registroFamilia.volver}
         </Link>
 
         <div className="py-14">
@@ -77,14 +71,8 @@ export default function RecuperarPassword() {
               <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" stroke="#10b981" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </div>
-          <h2 className="text-3xl font-semibold text-foreground leading-snug mb-4">
-            {lang === "es" ? "Recupera tu acceso" : "Recover your access"}
-          </h2>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            {lang === "es"
-              ? "Introduce tu correo y te enviaremos un enlace para restablecer tu contraseña."
-              : "Enter your email and we'll send you a link to reset your password."}
-          </p>
+          <h2 className="text-3xl font-semibold text-foreground leading-snug mb-4">{t.recuperarPassword.titulo}</h2>
+          <p className="text-sm text-muted-foreground leading-relaxed">{t.recuperarPassword.descripcion}</p>
         </div>
 
         <p className="text-xs text-muted-foreground/40">© {new Date().getFullYear()} ConciliaEx</p>
@@ -98,7 +86,7 @@ export default function RecuperarPassword() {
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-            {lang === "es" ? "Volver" : "Back"}
+            {t.registroFamilia.volver}
           </Link>
 
           <div className="mb-8">
@@ -106,21 +94,13 @@ export default function RecuperarPassword() {
               <LogoFamilia variante="header" />
               <span className="text-sm font-semibold text-foreground">ConciliaEx</span>
             </Link>
-            <h1 className="text-2xl font-semibold text-foreground mb-1.5">
-              {lang === "es" ? "¿Olvidaste tu contraseña?" : "Forgot your password?"}
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              {lang === "es"
-                ? "Introduce tu email y te enviamos un enlace de recuperación."
-                : "Enter your email and we'll send you a recovery link."}
-            </p>
+            <h1 className="text-2xl font-semibold text-foreground mb-1.5">{t.recuperarPassword.tituloForm}</h1>
+            <p className="text-sm text-muted-foreground">{t.recuperarPassword.subtitulo}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">
-                {lang === "es" ? "Correo electrónico" : "Email address"}
-              </label>
+              <label className="text-xs font-medium text-muted-foreground">{t.login.email}</label>
               <input
                 type="email"
                 placeholder="tu@email.com"
@@ -146,15 +126,13 @@ export default function RecuperarPassword() {
               disabled={cargando}
               className="w-full h-10 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-semibold transition-colors disabled:opacity-50"
             >
-              {cargando
-                ? (lang === "es" ? "Enviando..." : "Sending...")
-                : (lang === "es" ? "Enviar enlace de recuperación" : "Send recovery link")}
+              {cargando ? t.recuperarPassword.enviando : t.recuperarPassword.enviar}
             </button>
 
             <p className="text-center text-xs text-muted-foreground">
-              {lang === "es" ? "¿Recuerdas tu contraseña?" : "Remember your password?"}{" "}
+              {t.recuperarPassword.recuerdas}{" "}
               <Link to="/login" className="text-emerald-500 hover:text-emerald-400 font-medium transition-colors">
-                {lang === "es" ? "Inicia sesión" : "Sign in"}
+                {t.recuperarPassword.iniciaSesion}
               </Link>
             </p>
           </form>

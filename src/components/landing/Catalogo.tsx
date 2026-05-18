@@ -2,7 +2,6 @@ import { useEffect, useRef, useState, useMemo } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { useAuthStore } from "@/store/authStore"
 import { useServicioStore } from "@/store/servicioStore"
-import { useLangStore } from "@/store/langStore"
 import type { Servicio, TipoServicio } from "@/interfaces/Servicio"
 import { useT } from "@/i18n/useT"
 import { TIPOS_SERVICIO } from "@/lib/constants"
@@ -11,7 +10,6 @@ import { TIPOS_SERVICIO } from "@/lib/constants"
 export default function Catalogo({ variante = "full" }: { variante?: "landing" | "full" }) {
   const { usuario } = useAuthStore()
   const { resultados, cargandoBusqueda, buscarServicios, incrementarVisitas } = useServicioStore()
-  const { lang } = useLangStore()
   const navigate = useNavigate()
   const t = useT()
 
@@ -223,8 +221,8 @@ export default function Catalogo({ variante = "full" }: { variante?: "landing" |
                             <path d="M1.5 10.5c0-2.485 2.015-4.5 4.5-4.5s4.5 2.015 4.5 4.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
                           </svg>
                           {s.plazas === 0
-                            ? (lang === "es" ? "Sin plazas disponibles" : "No spots available")
-                            : `${s.plazas} ${lang === "es" ? "plazas disponibles" : "spots available"}`}
+                            ? t.catalogo.sinPlazasDisponibles
+                            : `${s.plazas} ${t.catalogo.plazasDisponibles}`}
                         </span>
                       )}
                     </div>
@@ -255,7 +253,7 @@ export default function Catalogo({ variante = "full" }: { variante?: "landing" |
                   to="/catalogo"
                   className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-medium transition-colors shadow-sm hover:shadow"
                 >
-                  {lang === "es" ? "Explorar todos los servicios" : "Explore all services"}
+                  {t.catalogo.explorarTodos}
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                     <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
@@ -269,19 +267,15 @@ export default function Catalogo({ variante = "full" }: { variante?: "landing" |
         {!usuario && (
           <div className="mt-16 pt-12 border-t border-border flex flex-col items-center text-center">
             <h3 className="text-lg font-semibold text-foreground mb-2">
-              {lang === "es" ? "¿Aún no tienes cuenta en ConciliaEx?" : "Don't have a ConciliaEx account yet?"}
+              {t.catalogo.ctaNoTienes}
             </h3>
-            <p className="text-sm text-muted-foreground mb-6 max-w-md">
-              {lang === "es" 
-                ? "Únete a nuestra plataforma para encontrar o publicar servicios especializados en Extremadura."
-                : "Join our platform to find or publish specialised services in Extremadura."}
-            </p>
+            <p className="text-sm text-muted-foreground mb-6 max-w-md">{t.catalogo.ctaDesc}</p>
             <div className="flex flex-col sm:flex-row items-center gap-4">
               <Link
                 to="/registro/familia"
                 className="inline-flex items-center justify-center px-6 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-semibold transition-colors shadow-sm"
               >
-                {lang === "es" ? "Registrarse como Familia" : "Register as Family"}
+                {t.catalogo.registrarFamilia}
               </Link>
               <Link
                 to="/registro/entidad"
@@ -353,8 +347,8 @@ export default function Catalogo({ variante = "full" }: { variante?: "landing" |
                     </svg>
                     <span>
                       {detalle.plazas === 0
-                        ? (lang === "es" ? "Sin plazas disponibles" : "No spots available")
-                        : `${detalle.plazas} ${lang === "es" ? "plazas disponibles" : "spots available"}`}
+                        ? t.catalogo.sinPlazasDisponibles
+                        : `${detalle.plazas} ${t.catalogo.plazasDisponibles}`}
                     </span>
                   </div>
                 )}
@@ -365,7 +359,7 @@ export default function Catalogo({ variante = "full" }: { variante?: "landing" |
                 className="w-full py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {detalle.plazas === 0
-                  ? (lang === "es" ? "Sin plazas disponibles" : "No spots available")
+                  ? t.catalogo.sinPlazasDisponibles
                   : t.catalogo.solicitarPlaza}
               </button>
             </div>

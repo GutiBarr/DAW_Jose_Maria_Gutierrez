@@ -2,6 +2,7 @@ export interface Translations {
   nav: {
     servicios: string; comoFunciona: string; contacto: string; miPanel: string
     iniciarSesion: string; registrarse: string; cerrarSesion: string; salir: string
+    modoClaro: string; modoOscuro: string
   }
   hero: {
     badge: string; titulo1: string; tituloResaltado: string; titulo2: string
@@ -20,6 +21,8 @@ export interface Translations {
     limpiarFiltros: string; buscar: string; buscando: string
     sinResultados: string; sinResultadosSub: string; resultados: (n: number) => string
     verDetalle: string; solicitarPlaza: string; ctaEntidad: string; ctaEntidadBtn: string
+    sinPlazasDisponibles: string; plazasDisponibles: string; explorarTodos: string
+    ctaNoTienes: string; ctaDesc: string; registrarFamilia: string
   }
   footer: {
     descripcion: string; activo: string; seccionPlataforma: string; verServicios: string
@@ -67,6 +70,10 @@ export interface Translations {
     passwordActual: string; passwordNueva: string; passwordConfirmar: string; cambiarPassword: string
     datosEntidad: string; nombreEntidad: string; cif: string; personaContacto: string
     telefono: string; descripcion: string; web: string; ver: string; ocultar: string
+    subtitulo: string; fotoPerfilTitulo: string; avatarFormato: string
+    informacion: string; direccion: string; tipoCuenta: string
+    rolAdmin: string; rolEntidad: string; rolFamilia: string
+    passwordActualizada: string; cambiando: string; perfilActualizado: string
   }
   dashFamilia: {
     bienvenido: string; resumen: string; pendientes: string; aceptadas: string
@@ -74,6 +81,7 @@ export interface Translations {
     sinSolicitudes: string; sinSolicitudesSub: string; estado: string; fecha: string
     servicio: string; entidad: string; mensaje: string; verDetalle: string
     pendienteLabel: string; aceptadaLabel: string; rechazadaLabel: string
+    buscar: string; todosEstados: string; noSolicitudes: string; noFiltros: string
   }
   dashEntidad: {
     bienvenido: string; solicitudesRecibidas: string; misServicios: string
@@ -83,16 +91,51 @@ export interface Translations {
     guardar: string; cancelar: string; nombre: string; tipo: string; ubicacion: string
     telefono: string; descripcion: string; imagen: string; plazas: string
     publicar: string; publicando: string; actualizando: string; actualizar: string
+    descripcionTexto: string; sinLimite: string; sinLimiteLabel: string
+    sinPlazas: string; plazasLabel: string; descripcionPlaceholder: string; opcional: string
+    sinServiciosSub: (nuevoServicio: string) => string
+    buscarSolicitudes: string; todosEstados: string
+    sinSolicitudesSub: string; noSolicitudes: string; noFiltros: string
+    respuesta: string; responder: string; modificar: string
+    responderSolicitud: string; modificarRespuesta: string; de: string
+    yaRespondida: string; mensajeFamilia: string; explicaTuDecision: string
+    guardando: string; enviarRespuesta: string; guardarCambios: string
+    si: string; no: string
   }
   dashAdmin: {
     titulo: string; usuarios: string; entidades: string; servicios: string; solicitudes: string
     activar: string; desactivar: string; aprobar: string; rechazar: string
     activo: string; inactivo: string; pendiente: string; aprobado: string; sinDatos: string
     nombre: string; email: string; rol: string; estado: string; acciones: string
+    cancelar: string; eliminar: string; familias: string; tu: string; tuCuenta: string
+    descripcion: string; todosRoles: string; todosEstados: string; todosTipos: string
+    buscarUsuarios: string; buscarServicios: string
+    eliminarCuenta: string; desactivarCuenta: string; eliminarServicio: string
+    confirmarEliminarCuenta: (nombre: string) => string
+    confirmarDesactivar: (nombre: string) => string
+    confirmarEliminarServicio: (nombre: string) => string
+    siEliminar: string; siDesactivar: string
   }
   solicitarServicio: {
     titulo: string; mensaje: string; mensajePlaceholder: string; necesidad: string
     enviar: string; enviando: string; volver: string; exito: string; error: string
+    subtitulo: string; exitoDesc: string
+    nombreFamiliar: string; nombreFamiliarPlaceholder: string; urgenciaLabel: string
+    errCampos: string; errServicio: string
+    urgenciaBajaLabel: string; urgenciaBajaDesc: string
+    urgenciaMediaLabel: string; urgenciaMediaDesc: string
+    urgenciaAltaLabel: string; urgenciaAltaDesc: string
+  }
+  recuperarPassword: {
+    titulo: string; descripcion: string; subtitulo: string; tituloForm: string
+    enviar: string; enviando: string; volverLogin: string; error: string
+    recuerdas: string; iniciaSesion: string
+    exitoTitulo: string; exitoDesc: (email: string) => string
+  }
+  nuevaPassword: {
+    titulo: string; subtituloLeft: string; tituloForm: string; minCaracteres: string
+    guardar: string; guardando: string; verificando: string
+    exitoTitulo: string; exitoDesc: string; irLogin: string; errorActualizar: string
   }
   notFound: {
     titulo: string; descripcion: string; volver: string
@@ -110,6 +153,8 @@ export const es: Translations = {
     registrarse: "Registrarse",
     cerrarSesion: "Cerrar sesión",
     salir: "Salir",
+    modoClaro: "Modo claro",
+    modoOscuro: "Modo oscuro",
   },
 
   // Hero
@@ -183,6 +228,12 @@ export const es: Translations = {
     solicitarPlaza: "Solicitar plaza",
     ctaEntidad: "¿Eres una entidad y quieres publicar tus servicios?",
     ctaEntidadBtn: "Registrar mi entidad",
+    sinPlazasDisponibles: "Sin plazas disponibles",
+    plazasDisponibles: "plazas disponibles",
+    explorarTodos: "Explorar todos los servicios",
+    ctaNoTienes: "¿Aún no tienes cuenta en ConciliaEx?",
+    ctaDesc: "Únete a nuestra plataforma para encontrar o publicar servicios especializados en Extremadura.",
+    registrarFamilia: "Registrarse como Familia",
   },
 
   // Footer
@@ -339,6 +390,18 @@ export const es: Translations = {
     web: "Sitio web",
     ver: "Ver",
     ocultar: "Ocultar",
+    subtitulo: "Actualiza tu información personal y foto de perfil",
+    fotoPerfilTitulo: "Foto de perfil",
+    avatarFormato: "JPG, PNG o WEBP. Máximo 5MB.",
+    informacion: "Información",
+    direccion: "Dirección",
+    tipoCuenta: "Tipo de cuenta",
+    rolAdmin: "Administrador",
+    rolEntidad: "Entidad",
+    rolFamilia: "Familia",
+    passwordActualizada: "Contraseña actualizada correctamente",
+    cambiando: "Cambiando...",
+    perfilActualizado: "Perfil actualizado correctamente",
   },
 
   // Dashboard familia
@@ -362,6 +425,10 @@ export const es: Translations = {
     pendienteLabel: "Pendiente",
     aceptadaLabel: "Aceptada",
     rechazadaLabel: "Rechazada",
+    buscar: "Buscar por servicio o entidad...",
+    todosEstados: "Todos los estados",
+    noSolicitudes: "No se encontraron solicitudes",
+    noFiltros: "Intenta con otros filtros de búsqueda",
   },
 
   // Dashboard entidad
@@ -392,6 +459,33 @@ export const es: Translations = {
     publicando: "Publicando...",
     actualizando: "Actualizando...",
     actualizar: "Actualizar servicio",
+    descripcionTexto: "Gestiona tus servicios y solicitudes recibidas",
+    sinLimite: "Vacío = sin límite",
+    sinLimiteLabel: "Sin límite",
+    sinPlazas: "Sin plazas",
+    plazasLabel: "plazas",
+    descripcionPlaceholder: "Describe el servicio...",
+    opcional: "opcional",
+    sinServiciosSub: (nuevoServicio: string) => `Pulsa "+ ${nuevoServicio}" para empezar`,
+    buscarSolicitudes: "Buscar por servicio o familia...",
+    todosEstados: "Todos los estados",
+    sinSolicitudesSub: "Cuando las familias soliciten tus servicios aparecerán aquí",
+    noSolicitudes: "No se encontraron solicitudes",
+    noFiltros: "Intenta con otros filtros de búsqueda",
+    respuesta: "Respuesta",
+    responder: "Responder",
+    modificar: "Modificar",
+    responderSolicitud: "Responder solicitud",
+    modificarRespuesta: "Modificar respuesta",
+    de: "De",
+    yaRespondida: "Esta solicitud ya fue respondida. Puedes cambiar la decisión.",
+    mensajeFamilia: "Mensaje para la familia *",
+    explicaTuDecision: "Explica tu decisión...",
+    guardando: "Guardando...",
+    enviarRespuesta: "Enviar respuesta",
+    guardarCambios: "Guardar cambios",
+    si: "Sí",
+    no: "No",
   },
 
   // Dashboard admin
@@ -415,6 +509,28 @@ export const es: Translations = {
     rol: "Rol",
     estado: "Estado",
     acciones: "Acciones",
+    cancelar: "Cancelar",
+    eliminar: "Eliminar",
+    familias: "Familias",
+    tu: "Tú",
+    tuCuenta: "Tu cuenta",
+    descripcion: "Gestiona usuarios y servicios de la plataforma",
+    todosRoles: "Todos los roles",
+    todosEstados: "Todos los estados",
+    todosTipos: "Todos los tipos",
+    buscarUsuarios: "Buscar por nombre o email...",
+    buscarServicios: "Buscar por nombre o ubicación...",
+    eliminarCuenta: "Eliminar cuenta",
+    desactivarCuenta: "Desactivar cuenta",
+    eliminarServicio: "Eliminar servicio",
+    confirmarEliminarCuenta: (nombre: string) =>
+      `¿Estás seguro de que quieres eliminar la cuenta de "${nombre}"? Esta acción no se puede deshacer y eliminará también todos sus servicios.`,
+    confirmarDesactivar: (nombre: string) =>
+      `¿Estás seguro de que quieres desactivar la cuenta de "${nombre}"? Sus servicios dejarán de aparecer en el catálogo.`,
+    confirmarEliminarServicio: (nombre: string) =>
+      `¿Estás seguro de que quieres eliminar el servicio "${nombre}"? Esta acción no se puede deshacer.`,
+    siEliminar: "Sí, eliminar",
+    siDesactivar: "Sí, desactivar",
   },
 
   // Solicitar servicio
@@ -428,6 +544,51 @@ export const es: Translations = {
     volver: "Volver",
     exito: "Solicitud enviada correctamente",
     error: "Error al enviar la solicitud",
+    subtitulo: "Completa el formulario y la entidad recibirá tu solicitud",
+    exitoDesc: "La entidad revisará tu solicitud y te responderá en breve. Puedes ver el estado en tu panel.",
+    nombreFamiliar: "Nombre del familiar *",
+    nombreFamiliarPlaceholder: "Nombre y apellidos",
+    urgenciaLabel: "Urgencia *",
+    errCampos: "Rellena todos los campos obligatorios",
+    errServicio: "Servicio no encontrado",
+    urgenciaBajaLabel: "Baja",
+    urgenciaBajaDesc: "Sin prisa, buscando opciones",
+    urgenciaMediaLabel: "Media",
+    urgenciaMediaDesc: "Necesario en los próximos meses",
+    urgenciaAltaLabel: "Alta",
+    urgenciaAltaDesc: "Necesidad inmediata",
+  },
+
+  // Recuperar contraseña
+  recuperarPassword: {
+    titulo: "Recupera tu acceso",
+    descripcion: "Introduce tu correo y te enviaremos un enlace para restablecer tu contraseña.",
+    subtitulo: "Introduce tu email y te enviamos un enlace de recuperación.",
+    tituloForm: "¿Olvidaste tu contraseña?",
+    enviar: "Enviar enlace de recuperación",
+    enviando: "Enviando...",
+    volverLogin: "Volver al inicio de sesión",
+    error: "No se pudo enviar el correo. Comprueba el email introducido.",
+    recuerdas: "¿Recuerdas tu contraseña?",
+    iniciaSesion: "Inicia sesión",
+    exitoTitulo: "Correo enviado",
+    exitoDesc: (email: string) =>
+      `Hemos enviado un enlace de recuperación a ${email}. Revisa tu bandeja de entrada y sigue las instrucciones.`,
+  },
+
+  // Nueva contraseña
+  nuevaPassword: {
+    titulo: "Nueva contraseña",
+    subtituloLeft: "Elige una contraseña segura de al menos 6 caracteres.",
+    tituloForm: "Elige una nueva contraseña",
+    minCaracteres: "Mínimo 6 caracteres.",
+    guardar: "Guardar nueva contraseña",
+    guardando: "Guardando...",
+    verificando: "Verificando enlace...",
+    exitoTitulo: "Contraseña actualizada",
+    exitoDesc: "Tu contraseña se ha cambiado correctamente. Redirigiendo al inicio de sesión...",
+    irLogin: "Ir al inicio de sesión",
+    errorActualizar: "No se pudo actualizar la contraseña. Inténtalo de nuevo.",
   },
 
   // NotFound

@@ -138,7 +138,7 @@ export const useAuthStore = create<AuthState>()(
         limpiarStores()
 
         try {
-          await supabase.auth.signOut({ scope: "local" })
+          await authRepo.cerrarSesion()
         } catch (e) {
           console.error(e)
         }

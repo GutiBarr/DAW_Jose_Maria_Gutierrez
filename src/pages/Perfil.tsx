@@ -8,6 +8,7 @@ import { useThemeStore } from "@/store/themeStore"
 import { useLangStore } from "@/store/langStore"
 import { useT } from "@/i18n/useT"
 import { supabase } from "@/database/supabase/Client"
+import { inputClass } from "@/lib/styles"
 
 export default function Perfil() {
   const { usuario } = useAuthStore()
@@ -57,8 +58,7 @@ export default function Perfil() {
     setError("")
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async () => {
     setGuardando(true)
     setError("")
     setExito(false)
@@ -95,18 +95,18 @@ export default function Perfil() {
     setErrorPass("")
     setExitoPass(false)
     if (passForm.nueva.length < 6) {
-      setErrorPass(lang === "es" ? "La contraseña debe tener al menos 6 caracteres" : "Password must be at least 6 characters")
+      setErrorPass(t.registroFamilia.errPassCorta)
       return
     }
     if (passForm.nueva !== passForm.confirmar) {
-      setErrorPass(lang === "es" ? "Las contraseñas no coinciden" : "Passwords do not match")
+      setErrorPass(t.registroFamilia.errPassNoCoinciden)
       return
     }
     setGuardandoPass(true)
     const { error } = await supabase.auth.updateUser({ password: passForm.nueva })
     setGuardandoPass(false)
     if (error) {
-      setErrorPass(lang === "es" ? "Error al cambiar la contraseña" : "Error changing password")
+      setErrorPass(t.nuevaPassword.errorActualizar)
       return
     }
     setExitoPass(true)
@@ -114,8 +114,6 @@ export default function Perfil() {
   }
 
   const dashboardUrl = usuario ? getDashboardByRol(usuario.rol) : "/"
-
-  const inputClass = "w-full h-9 px-3 rounded-lg border border-border bg-input text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
 
   return (
     <div className="min-h-screen bg-background">
@@ -159,9 +157,7 @@ export default function Perfil() {
       <main className="max-w-2xl mx-auto px-6 py-10">
         <div className="mb-8">
           <h1 className="text-2xl font-semibold text-foreground">{t.perfil.titulo}</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {lang === "es" ? "Actualiza tu información personal y foto de perfil" : "Update your personal information and profile photo"}
-          </p>
+          <p className="text-sm text-muted-foreground mt-1">{t.perfil.subtitulo}</p>
         </div>
 
         {cargando ? (
@@ -170,12 +166,10 @@ export default function Perfil() {
             <p className="text-sm text-muted-foreground">...</p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="space-y-5">
             {/* Avatar */}
             <div className="bg-card border border-border rounded-xl p-6">
-              <h2 className="text-sm font-semibold text-foreground mb-4">
-                {lang === "es" ? "Foto de perfil" : "Profile photo"}
-              </h2>
+              <h2 className="text-sm font-semibold text-foreground mb-4">{t.perfil.fotoPerfilTitulo}</h2>
               <div className="flex items-center gap-5">
                 <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-border bg-muted shrink-0 flex items-center justify-center">
                   {prevAvatar || perfil?.avatar_url ? (
@@ -201,18 +195,14 @@ export default function Perfil() {
                     }}
                     className="text-sm text-muted-foreground file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-emerald-500/10 file:text-emerald-500 hover:file:bg-emerald-500/20 cursor-pointer"
                   />
-                  <p className="text-xs text-muted-foreground/60 mt-1.5">
-                    {lang === "es" ? "JPG, PNG o WEBP. Máximo 5MB." : "JPG, PNG or WEBP. Maximum 5MB."}
-                  </p>
+                  <p className="text-xs text-muted-foreground/60 mt-1.5">{t.perfil.avatarFormato}</p>
                 </div>
               </div>
             </div>
 
             {/* Datos */}
             <div className="bg-card border border-border rounded-xl p-6 space-y-4">
-              <h2 className="text-sm font-semibold text-foreground">
-                {lang === "es" ? "Información" : "Information"}
-              </h2>
+              <h2 className="text-sm font-semibold text-foreground">{t.perfil.informacion}</h2>
 
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground">{t.perfil.email}</label>
@@ -256,9 +246,7 @@ export default function Perfil() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">
-                  {lang === "es" ? "Dirección" : "Address"}
-                </label>
+                <label className="text-xs font-medium text-muted-foreground">{t.perfil.direccion}</label>
                 <input
                   type="text"
                   value={form.direccion}
@@ -270,9 +258,7 @@ export default function Perfil() {
 
             {/* Rol */}
             <div className="bg-card border border-border rounded-xl p-6">
-              <h2 className="text-sm font-semibold text-foreground mb-3">
-                {lang === "es" ? "Tipo de cuenta" : "Account type"}
-              </h2>
+              <h2 className="text-sm font-semibold text-foreground mb-3">{t.perfil.tipoCuenta}</h2>
               <span className={`inline-flex items-center gap-1.5 text-xs px-3 py-1 rounded-full font-medium border ${
                 usuario?.rol === "admin"
                   ? "bg-violet-500/10 text-violet-500 border-violet-500/20"
@@ -281,10 +267,10 @@ export default function Perfil() {
                   : "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
               }`}>
                 {usuario?.rol === "admin"
-                  ? (lang === "es" ? "Administrador" : "Administrator")
+                  ? t.perfil.rolAdmin
                   : usuario?.rol === "entidad"
-                  ? (lang === "es" ? "Entidad" : "Entity")
-                  : (lang === "es" ? "Familia" : "Family")}
+                  ? t.perfil.rolEntidad
+                  : t.perfil.rolFamilia}
               </span>
             </div>
 
@@ -331,7 +317,7 @@ export default function Perfil() {
                 )}
                 {exitoPass && (
                   <p className="text-xs text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-3 py-2 rounded-lg">
-                    ✓ {lang === "es" ? "Contraseña actualizada correctamente" : "Password updated successfully"}
+                    ✓ {t.perfil.passwordActualizada}
                   </p>
                 )}
                 <div className="flex justify-end">
@@ -339,7 +325,7 @@ export default function Perfil() {
                     type="submit" disabled={guardandoPass || !passForm.nueva || !passForm.confirmar}
                     className="px-5 py-2 rounded-lg bg-muted hover:bg-muted/80 text-foreground text-sm font-medium transition-colors disabled:opacity-50 border border-border"
                   >
-                    {guardandoPass ? (lang === "es" ? "Cambiando..." : "Changing...") : t.perfil.cambiarPassword}
+                    {guardandoPass ? t.perfil.cambiando : t.perfil.cambiarPassword}
                   </button>
                 </div>
               </form>
@@ -352,19 +338,19 @@ export default function Perfil() {
             )}
             {exito && (
               <p className="text-xs text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-3 py-2 rounded-lg">
-                ✓ {lang === "es" ? "Perfil actualizado correctamente" : "Profile updated successfully"}
+                ✓ {t.perfil.perfilActualizado}
               </p>
             )}
 
             <div className="flex justify-end">
               <button
-                type="submit" disabled={guardando}
+                type="button" onClick={handleSubmit} disabled={guardando}
                 className="px-6 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-semibold transition-colors disabled:opacity-50"
               >
                 {guardando ? t.perfil.guardando : t.perfil.guardar}
               </button>
             </div>
-          </form>
+          </div>
         )}
       </main>
     </div>

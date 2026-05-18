@@ -22,9 +22,9 @@ export default function SolicitarServicio() {
   const t = useT()
 
   const URGENCIAS: { value: UrgenciaSolicitud; label: string; desc: string }[] = [
-    { value: "baja",  label: lang === "es" ? "Baja"  : "Low",    desc: lang === "es" ? "Sin prisa, buscando opciones"       : "No rush, exploring options" },
-    { value: "media", label: lang === "es" ? "Media" : "Medium", desc: lang === "es" ? "Necesario en los próximos meses"    : "Needed in the coming months" },
-    { value: "alta",  label: lang === "es" ? "Alta"  : "High",   desc: lang === "es" ? "Necesidad inmediata"                : "Immediate need" },
+    { value: "baja",  label: t.solicitarServicio.urgenciaBajaLabel,  desc: t.solicitarServicio.urgenciaBajaDesc  },
+    { value: "media", label: t.solicitarServicio.urgenciaMediaLabel, desc: t.solicitarServicio.urgenciaMediaDesc },
+    { value: "alta",  label: t.solicitarServicio.urgenciaAltaLabel,  desc: t.solicitarServicio.urgenciaAltaDesc  },
   ]
 
   const [form, setForm] = useState({
@@ -56,11 +56,11 @@ export default function SolicitarServicio() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!form.nombre_familiar || !form.mensaje) {
-      setError(lang === "es" ? "Rellena todos los campos obligatorios" : "Fill in all required fields")
+      setError(t.solicitarServicio.errCampos)
       return
     }
     if (!servicio) {
-      setError(lang === "es" ? "Servicio no encontrado" : "Service not found")
+      setError(t.solicitarServicio.errServicio)
       return
     }
 
@@ -89,11 +89,7 @@ export default function SolicitarServicio() {
             </svg>
           </div>
           <h1 className="text-xl font-semibold text-foreground mb-2">{t.solicitarServicio.exito}</h1>
-          <p className="text-sm text-muted-foreground mb-8">
-            {lang === "es"
-              ? "La entidad revisará tu solicitud y te responderá en breve. Puedes ver el estado en tu panel."
-              : "The entity will review your request and get back to you shortly. You can check the status in your panel."}
-          </p>
+          <p className="text-sm text-muted-foreground mb-8">{t.solicitarServicio.exitoDesc}</p>
           <div className="flex flex-col gap-2">
             <Link
               to="/familia/dashboard"
@@ -179,22 +175,16 @@ export default function SolicitarServicio() {
 
         <div className="mb-8">
           <h1 className="text-2xl font-semibold text-foreground mb-1.5">{t.solicitarServicio.titulo}</h1>
-          <p className="text-sm text-muted-foreground">
-            {lang === "es"
-              ? "Completa el formulario y la entidad recibirá tu solicitud"
-              : "Fill in the form and the entity will receive your request"}
-          </p>
+          <p className="text-sm text-muted-foreground">{t.solicitarServicio.subtitulo}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Nombre familiar */}
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground">
-              {lang === "es" ? "Nombre del familiar *" : "Family member's name *"}
-            </label>
+            <label className="text-xs font-medium text-muted-foreground">{t.solicitarServicio.nombreFamiliar}</label>
             <input
               type="text"
-              placeholder={lang === "es" ? "Nombre y apellidos" : "Full name"}
+              placeholder={t.solicitarServicio.nombreFamiliarPlaceholder}
               value={form.nombre_familiar}
               onChange={(e) => setField("nombre_familiar", e.target.value)}
               className={inputClass}
@@ -217,9 +207,7 @@ export default function SolicitarServicio() {
 
           {/* Urgencia */}
           <div className="space-y-2">
-            <label className="text-xs font-medium text-muted-foreground">
-              {lang === "es" ? "Urgencia *" : "Urgency *"}
-            </label>
+            <label className="text-xs font-medium text-muted-foreground">{t.solicitarServicio.urgenciaLabel}</label>
             <div className="grid grid-cols-3 gap-3">
               {URGENCIAS.map((u) => (
                 <button
