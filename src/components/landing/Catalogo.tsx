@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, useMemo } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { useAuthStore } from "@/store/authStore"
 import { useServicioStore } from "@/store/servicioStore"
@@ -8,7 +8,7 @@ import { useT } from "@/i18n/useT"
 import { TIPOS_SERVICIO } from "@/lib/constants"
 
 
-export default function Catalogo() {
+export default function Catalogo({ variante = "full" }: { variante?: "landing" | "full" }) {
   const { usuario } = useAuthStore()
   const { resultados, cargandoBusqueda, buscarServicios, incrementarVisitas } = useServicioStore()
   const { lang } = useLangStore()
@@ -45,6 +45,12 @@ export default function Catalogo() {
     e.preventDefault()
     buscarServicios({ nombre, tipo, ubicacion })
   }
+
+  const serviciosAMostrar = useMemo(() => {
+    if (variante === "full") return resultados
+    // En landing mostramos 3 random
+    return [...resultados].sort(() => 0.5 - Math.random()).slice(0, 3)
+  }, [resultados, variante])
 
   const handleLimpiar = () => {
     setNombre("")
@@ -88,11 +94,12 @@ export default function Catalogo() {
         </div>
 
         {/* Filtros */}
-        <form
-          onSubmit={handleBuscar}
-          className="bg-card border border-border rounded-2xl p-5 mb-8 shadow-sm"
-        >
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+        {variante === "full" && (
+          <form
+            onSubmit={handleBuscar}
+            className="bg-card border border-border rounded-2xl p-5 mb-8 shadow-sm"
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">{t.catalogo.filtroNombre}</label>
               <input
@@ -141,6 +148,7 @@ export default function Catalogo() {
             </button>
           </div>
         </form>
+        )}
 
         {/* Resultados */}
         {cargandoBusqueda ? (
@@ -148,18 +156,20 @@ export default function Catalogo() {
             <div className="w-6 h-6 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin mx-auto mb-3" />
             <p className="text-sm text-muted-foreground">{t.catalogo.buscando}</p>
           </div>
-        ) : resultados.length === 0 ? (
+        ) : serviciosAMostrar.length === 0 ? (
           <div className="text-center py-16 border border-dashed border-border rounded-2xl">
             <p className="text-sm font-medium text-foreground mb-1">{t.catalogo.sinResultados}</p>
             <p className="text-xs text-muted-foreground">{t.catalogo.sinResultadosSub}</p>
           </div>
         ) : (
           <>
-            <p className="text-xs text-muted-foreground mb-5">
-              {t.catalogo.resultados(resultados.length)}
-            </p>
+            {variante === "full" && (
+              <p className="text-xs text-muted-foreground mb-5">
+                {t.catalogo.resultados(serviciosAMostrar.length)}
+              </p>
+            )}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {resultados.map((s: Servicio) => (
+              {serviciosAMostrar.map((s: Servicio) => (
                 <div
                   key={s.id}
                   className="bg-card border border-border rounded-2xl overflow-hidden hover:border-emerald-500/30 hover:shadow-md transition-all duration-200 group flex flex-col"
@@ -238,21 +248,48 @@ export default function Catalogo() {
                 </div>
               ))}
             </div>
+            
+            {variante === "landing" && (
+              <div className="mt-10 text-center">
+                <Link
+                  to="/catalogo"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-medium transition-colors shadow-sm hover:shadow"
+                >
+                  {lang === "es" ? "Explorar todos los servicios" : "Explore all services"}
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </Link>
+              </div>
+            )}
           </>
         )}
 
         {/* CTA registro */}
         {!usuario && (
-          <div className="mt-12 text-center">
-            <p className="text-sm text-muted-foreground mb-4">
-              {t.catalogo.ctaEntidad}
+          <div className="mt-16 pt-12 border-t border-border flex flex-col items-center text-center">
+            <h3 className="text-lg font-semibold text-foreground mb-2">
+              {lang === "es" ? "¿Aún no tienes cuenta en ConciliaEx?" : "Don't have a ConciliaEx account yet?"}
+            </h3>
+            <p className="text-sm text-muted-foreground mb-6 max-w-md">
+              {lang === "es" 
+                ? "Únete a nuestra plataforma para encontrar o publicar servicios especializados en Extremadura."
+                : "Join our platform to find or publish specialised services in Extremadura."}
             </p>
-            <Link
-              to="/registro/entidad"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border border-border hover:border-border-strong text-muted-foreground hover:text-foreground text-sm font-medium transition-colors"
-            >
-              {t.catalogo.ctaEntidadBtn}
-            </Link>
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              <Link
+                to="/registro/familia"
+                className="inline-flex items-center justify-center px-6 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-semibold transition-colors shadow-sm"
+              >
+                {lang === "es" ? "Registrarse como Familia" : "Register as Family"}
+              </Link>
+              <Link
+                to="/registro/entidad"
+                className="inline-flex items-center justify-center px-6 py-2.5 rounded-lg border border-border hover:border-border-strong text-muted-foreground hover:text-foreground text-sm font-semibold transition-colors"
+              >
+                {t.catalogo.ctaEntidadBtn}
+              </Link>
+            </div>
           </div>
         )}
       </div>
@@ -296,14 +333,24 @@ export default function Catalogo() {
               <p className="text-sm text-muted-foreground leading-relaxed mb-5">{detalle.descripcion}</p>
               <div className="space-y-2 text-sm text-muted-foreground border-t border-border pt-4 mb-5">
                 <div className="flex items-center gap-2">
-                  <span>📍</span><span>{detalle.ubicacion}</span>
+                  <svg width="14" height="14" viewBox="0 0 12 12" fill="none">
+                    <path d="M6 1C4.067 1 2.5 2.567 2.5 4.5c0 2.625 3.5 6.5 3.5 6.5s3.5-3.875 3.5-6.5C9.5 2.567 7.933 1 6 1z" stroke="currentColor" strokeWidth="1.2"/>
+                    <circle cx="6" cy="4.5" r="1" stroke="currentColor" strokeWidth="1.2"/>
+                  </svg>
+                  <span>{detalle.ubicacion}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span>📞</span><span>{detalle.telefono}</span>
+                  <svg width="14" height="14" viewBox="0 0 12 12" fill="none">
+                    <path d="M2 3.5A1.5 1.5 0 013.5 2h.379a.5.5 0 01.464.314l.75 1.875a.5.5 0 01-.145.564l-.69.575a7.07 7.07 0 003.414 3.414l.575-.69a.5.5 0 01.564-.145l1.875.75a.5.5 0 01.314.464V8.5A1.5 1.5 0 018.5 10 6.5 6.5 0 012 3.5z" stroke="currentColor" strokeWidth="1.2"/>
+                  </svg>
+                  <span>{detalle.telefono}</span>
                 </div>
                 {detalle.plazas !== null && (
                   <div className={`flex items-center gap-2 font-medium ${detalle.plazas === 0 ? "text-red-500" : "text-emerald-500"}`}>
-                    <span>🪑</span>
+                    <svg width="14" height="14" viewBox="0 0 12 12" fill="none">
+                      <circle cx="6" cy="4" r="2.5" stroke="currentColor" strokeWidth="1.2"/>
+                      <path d="M1.5 10.5c0-2.485 2.015-4.5 4.5-4.5s4.5 2.015 4.5 4.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+                    </svg>
                     <span>
                       {detalle.plazas === 0
                         ? (lang === "es" ? "Sin plazas disponibles" : "No spots available")

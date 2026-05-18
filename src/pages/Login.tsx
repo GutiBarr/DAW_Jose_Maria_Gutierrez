@@ -20,19 +20,12 @@ export default function Login() {
     const { error } = await iniciarSesion({ email, password })
     if (error) { setError(error); return }
 
-    let intentos = 0
-    const intervalo = setInterval(() => {
-      const usuario = useAuthStore.getState().usuario
-      intentos++
-      if (usuario) {
-        clearInterval(intervalo)
-        navigate(getDashboardByRol(usuario.rol))
-      }
-      if (intentos > 10) {
-        clearInterval(intervalo)
-        setError(t.login.errorRecarga)
-      }
-    }, 100)
+    const usuarioActual = useAuthStore.getState().usuario
+    if (usuarioActual) {
+      navigate(getDashboardByRol(usuarioActual.rol))
+    } else {
+      setError(t.login.errorRecarga)
+    }
   }
 
   return (

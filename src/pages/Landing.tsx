@@ -11,7 +11,7 @@ export default function Landing() {
       <main>
         <Hero />
         <ComoFunciona />
-        <Catalogo />
+        <Catalogo variante="landing" />
       </main>
       <Footer />
     </>

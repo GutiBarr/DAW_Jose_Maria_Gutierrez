@@ -11,6 +11,7 @@ import AuthGuard      from "@/components/auth/AuthGuard"
 // Páginas públicas
 import Landing  from "@/pages/Landing"
 import NotFound from "@/pages/NotFound"
+import CatalogoPage from "@/pages/CatalogoPage"
 
 // Auth pages
 import Login             from "@/pages/Login"
@@ -44,6 +45,7 @@ export default function App() {
 
         {/* Pública */}
         <Route path="/" element={<Landing />} />
+        <Route path="/catalogo" element={<CatalogoPage />} />
 
         {/* Recuperación de contraseña — siempre accesibles */}
         <Route path="/recuperar"      element={<RecuperarPassword />} />

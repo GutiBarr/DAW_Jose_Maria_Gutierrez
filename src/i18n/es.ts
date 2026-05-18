@@ -182,7 +182,7 @@ export const es: Translations = {
     verDetalle: "Ver detalle",
     solicitarPlaza: "Solicitar plaza",
     ctaEntidad: "¿Eres una entidad y quieres publicar tus servicios?",
-    ctaEntidadBtn: "Registrar mi entidad →",
+    ctaEntidadBtn: "Registrar mi entidad",
   },
 
   // Footer

@@ -53,7 +53,7 @@ export default function RecuperarPassword() {
             to="/login"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border border-border hover:border-border-strong text-muted-foreground hover:text-foreground text-sm transition-colors"
           >
-            ← {lang === "es" ? "Volver al inicio de sesión" : "Back to sign in"}
+            {lang === "es" ? "Volver al inicio de sesión" : "Back to sign in"}
           </Link>
         </div>
       </div>

@@ -19,6 +19,7 @@ interface AdminState {
   cargarTodosServicios:   () => Promise<void>
   eliminarServicio:       (id: string) => Promise<{ error?: string }>
   toggleActivoServicio:   (id: string, activo: boolean) => Promise<{ error?: string }>
+  reset:                  () => void
 }
 
 export const useAdminStore = create<AdminState>()((set, get) => ({
@@ -26,6 +27,8 @@ export const useAdminStore = create<AdminState>()((set, get) => ({
   servicios: [],
   cargando:  false,
   error:     null,
+
+  reset: () => set({ perfiles: [], servicios: [], cargando: false, error: null }),
 
   cargarPerfiles: async () => {
     set({ cargando: true, error: null })

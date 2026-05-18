@@ -6,6 +6,7 @@ import { supabase } from "@/database/supabase/Client"
 import { usePerfilStore } from "@/store/perfilStore"
 import { useServicioStore } from "@/store/servicioStore"
 import { useSolicitudStore } from "@/store/solicitudStore"
+import { useAdminStore } from "@/store/adminStore"
 
 const authRepo = createAuthRepository()
 
@@ -30,6 +31,7 @@ function limpiarStores() {
   usePerfilStore.getState().reset()
   useServicioStore.getState().reset()
   useSolicitudStore.getState().reset()
+  useAdminStore.getState().reset()
 }
 
 export const useAuthStore = create<AuthState>()(

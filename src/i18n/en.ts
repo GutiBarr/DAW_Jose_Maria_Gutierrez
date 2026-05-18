@@ -83,7 +83,7 @@ export const en: Translations = {
     verDetalle: "View details",
     solicitarPlaza: "Request a place",
     ctaEntidad: "Are you an entity and want to publish your services?",
-    ctaEntidadBtn: "Register my entity →",
+    ctaEntidadBtn: "Register my entity",
   },
 
   // Footer

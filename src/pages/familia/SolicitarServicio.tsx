@@ -166,7 +166,13 @@ export default function SolicitarServicio() {
             <div>
               <span className="text-xs text-emerald-500 font-medium">{servicio.tipo}</span>
               <h2 className="text-sm font-semibold text-foreground">{servicio.nombre}</h2>
-              <p className="text-xs text-muted-foreground">📍 {servicio.ubicacion}</p>
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M6 1C4.067 1 2.5 2.567 2.5 4.5c0 2.625 3.5 6.5 3.5 6.5s3.5-3.875 3.5-6.5C9.5 2.567 7.933 1 6 1z" stroke="currentColor" strokeWidth="1.2"/>
+                  <circle cx="6" cy="4.5" r="1" stroke="currentColor" strokeWidth="1.2"/>
+                </svg>
+                {servicio.ubicacion}
+              </div>
             </div>
           </div>
         )}

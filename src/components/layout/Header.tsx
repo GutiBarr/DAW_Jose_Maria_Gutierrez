@@ -8,7 +8,12 @@ import { useThemeStore } from "@/store/themeStore"
 import { useLangStore } from "@/store/langStore"
 import { useT } from "@/i18n/useT"
 
-export default function Header() {
+interface HeaderProps {
+  variant?: "landing" | "dashboard"
+  subtitle?: string
+}
+
+export default function Header({ variant = "landing", subtitle }: HeaderProps) {
   const { usuario, cerrarSesion } = useAuthStore()
   const { perfil, cargarPerfil } = usePerfilStore()
   const { theme, toggleTheme } = useThemeStore()
@@ -45,9 +50,11 @@ export default function Header() {
 
   const isDark = theme === "dark"
 
+  const isDashboard = variant === "dashboard"
+
   return (
     <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-      scrolled
+      scrolled || isDashboard
         ? "bg-background/95 backdrop-blur-md border-b border-border shadow-sm"
         : "bg-transparent"
     }`}>
@@ -55,25 +62,47 @@ export default function Header() {
         <div className="flex items-center justify-between h-16">
 
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2.5">
-            <LogoFamilia variante="header" />
-            <span className="text-base font-semibold text-foreground tracking-tight">
-              ConciliaEx
-            </span>
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link to="/" className="flex items-center gap-2.5">
+              <LogoFamilia variante="header" />
+              <span className="text-base font-semibold text-foreground tracking-tight">
+                ConciliaEx
+              </span>
+            </Link>
+            {isDashboard && subtitle && (
+              <>
+                <span className="text-muted-foreground/30 select-none">·</span>
+                <span className="text-sm text-muted-foreground">{subtitle}</span>
+              </>
+            )}
+          </div>
 
-          {/* Nav desktop */}
-          <nav className="hidden md:flex items-center gap-1">
-            {navLinks.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                className="px-3.5 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+          {/* Nav desktop – solo en landing */}
+          {!isDashboard && (
+            <nav className="hidden md:flex items-center gap-1">
+              {navLinks.map((link) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  className="px-3.5 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                >
+                  {link.label}
+                </a>
+              ))}
+            </nav>
+          )}
+
+          {/* Nav desktop - enlace a Catálogo en dashboard */}
+          {isDashboard && (
+            <nav className="hidden md:flex items-center gap-1">
+              <Link
+                to="/catalogo"
+                className="px-3.5 py-1.5 rounded-lg text-sm font-medium text-emerald-500 hover:bg-emerald-500/10 border border-emerald-500/20 transition-colors"
               >
-                {link.label}
-              </a>
-            ))}
-          </nav>
+                {t.nav.servicios}
+              </Link>
+            </nav>
+          )}
 
           {/* Actions */}
           <div className="hidden md:flex items-center gap-2">
@@ -173,7 +202,8 @@ export default function Header() {
       {/* Mobile menu */}
       {menuOpen && (
         <div className="md:hidden bg-background border-t border-border px-6 py-4 flex flex-col gap-1">
-          {navLinks.map((link) => (
+          {/* Nav links solo en landing */}
+          {!isDashboard && navLinks.map((link) => (
             <a
               key={link.href}
               href={link.href}
@@ -183,6 +213,17 @@ export default function Header() {
               {link.label}
             </a>
           ))}
+
+          {/* Enlace a Catálogo en dashboard (móvil) */}
+          {isDashboard && (
+            <Link
+              to="/catalogo"
+              onClick={() => setMenuOpen(false)}
+              className="px-3 py-2.5 text-sm font-medium text-emerald-500 hover:bg-emerald-500/10 rounded-lg transition-colors border border-emerald-500/20 w-fit"
+            >
+              {t.nav.servicios}
+            </Link>
+          )}
 
           {/* Theme + Lang row */}
           <div className="flex items-center gap-2 px-3 py-2.5">

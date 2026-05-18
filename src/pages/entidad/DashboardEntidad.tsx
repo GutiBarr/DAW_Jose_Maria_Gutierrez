@@ -1,21 +1,23 @@
 import { useEffect, useState } from "react"
-import { Link } from "react-router-dom"
 import { useAuthStore } from "@/store/authStore"
 import { useServicioStore } from "@/store/servicioStore"
 import { useSolicitudStore } from "@/store/solicitudStore"
 import { usePerfilStore } from "@/store/perfilStore"
 import type { Servicio, DatosCrearServicio, TipoServicio } from "@/interfaces/Servicio"
 import type { Solicitud, DatosResponderSolicitud } from "@/interfaces/Solicitud"
-import LogoFamilia from "../../components/layout/LogoFamilia"
-import { useThemeStore } from "@/store/themeStore"
 import { useLangStore } from "@/store/langStore"
 import { useT } from "@/i18n/useT"
 import { TIPOS_SERVICIO } from "@/lib/constants"
-
+import DashboardHeader from "@/components/dashboard/DashboardHeader"
+import KpiCard from "@/components/dashboard/KpiCard"
+import TabBar from "@/components/dashboard/TabBar"
+import EmptyState from "@/components/dashboard/EmptyState"
+import LoadingSpinner from "@/components/dashboard/LoadingSpinner"
+import Modal, { ModalHeader } from "@/components/dashboard/Modal"
 
 const FORM_VACIO: DatosCrearServicio = {
   nombre: "", descripcion: "", tipo: "Centro de Día",
-  ubicacion: "", telefono: "", imagen_url: "",
+  ubicacion: "", telefono: "", imagen_url: "", plazas: null,
 }
 
 const estadoBadge = {
@@ -27,7 +29,7 @@ const estadoBadge = {
 type Pestaña = "servicios" | "solicitudes"
 
 export default function DashboardEntidad() {
-  const { usuario, cerrarSesion } = useAuthStore()
+  const { usuario } = useAuthStore()
   const {
     servicios, cargando: cargandoServicios,
     cargarMisServicios, crearServicio, eliminarServicio, toggleActivo, subirImagen,
@@ -38,8 +40,7 @@ export default function DashboardEntidad() {
     cargarSolicitudesEntidad, responderSolicitud,
   } = useSolicitudStore()
   const { perfil, cargarPerfil } = usePerfilStore()
-  const { theme, toggleTheme } = useThemeStore()
-  const { lang, toggleLang } = useLangStore()
+  const { lang } = useLangStore()
   const t = useT()
 
   const [pestaña, setPestaña]                   = useState<Pestaña>("servicios")
@@ -56,12 +57,16 @@ export default function DashboardEntidad() {
   const [editandoServicio, setEditandoServicio] = useState<Servicio | null>(null)
   const [formEditar, setFormEditar]             = useState<DatosCrearServicio>(FORM_VACIO)
   const [guardandoEdicion, setGuardandoEdicion] = useState(false)
+  const [filtroEstado, setFiltroEstado]         = useState<string>("todos")
+  const [busqueda, setBusqueda]                 = useState<string>("")
 
   useEffect(() => {
-    cargarMisServicios()
-    cargarSolicitudesEntidad()
-    cargarPerfil()
-  }, [])
+    if (usuario?.id) {
+      cargarMisServicios()
+      cargarSolicitudesEntidad()
+      cargarPerfil()
+    }
+  }, [usuario?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const nombreEntidad = perfil?.nombre_entidad ?? usuario?.nombreEntidad ?? ""
 
@@ -145,52 +150,22 @@ export default function DashboardEntidad() {
     return t.dashEntidad.rechazadaLabel
   }
 
+  const solicitudesFiltradas = solicitudes.filter((s) => {
+    const coincideEstado = filtroEstado === "todos" || s.estado === filtroEstado
+    const searchLower = busqueda.toLowerCase()
+    const coincideTexto = 
+      (s.servicio?.nombre?.toLowerCase() ?? "").includes(searchLower) ||
+      (s.nombre_familiar.toLowerCase() ?? "").includes(searchLower)
+    return coincideEstado && coincideTexto
+  })
+
   const inputClass = "w-full h-9 px-3 rounded-lg border border-border bg-input text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-card px-6 lg:px-8 py-4">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link to="/" className="flex items-center gap-2">
-              <LogoFamilia variante="header" />
-              <span className="text-sm font-semibold text-foreground">ConciliaEx</span>
-            </Link>
-            <span className="text-muted-foreground/30">·</span>
-            <span className="text-sm text-muted-foreground">{t.dashEntidad.bienvenido}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <button onClick={toggleTheme} className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
-              {theme === "dark" ? (
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="5" stroke="currentColor" strokeWidth="1.8"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
-              ) : (
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              )}
-            </button>
-            <button onClick={toggleLang} className="px-2 py-1 rounded-lg text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted border border-border transition-colors">
-              {lang === "es" ? "EN" : "ES"}
-            </button>
-            <Link to="/perfil" className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border hover:border-border-strong transition-colors">
-              {perfil?.avatar_url ? (
-                <img src={perfil.avatar_url} alt={nombreEntidad} className="w-5 h-5 rounded-full object-cover ring-1 ring-border" />
-              ) : (
-                <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-xs text-muted-foreground font-medium">
-                  {nombreEntidad.charAt(0).toUpperCase()}
-                </div>
-              )}
-              <span className="text-xs text-muted-foreground hidden sm:block max-w-[120px] truncate">
-                {nombreEntidad}
-              </span>
-            </Link>
-            <button onClick={() => cerrarSesion()} className="px-3 py-1.5 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
-              {t.nav.salir}
-            </button>
-          </div>
-        </div>
-      </header>
+      <DashboardHeader subtitle={t.dashEntidad.bienvenido} />
 
-      <main className="max-w-6xl mx-auto px-6 lg:px-8 py-10">
+      <main className="max-w-6xl mx-auto px-6 lg:px-8 pt-28 pb-10">
         <div className="flex items-start justify-between mb-8">
           <div>
             <h1 className="text-2xl font-semibold text-foreground mb-1">{nombreEntidad}</h1>
@@ -210,40 +185,21 @@ export default function DashboardEntidad() {
 
         {/* KPIs */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-          {[
-            { label: t.dashEntidad.misServicios,         value: servicios.length },
-            { label: t.dashAdmin.activo,                 value: servicios.filter((s) => s.activo).length },
-            { label: t.dashEntidad.solicitudesRecibidas, value: solicitudes.length },
-            { label: t.dashFamilia.pendientes,           value: pendientes, highlight: pendientes > 0 },
-          ].map((kpi) => (
-            <div key={kpi.label} className="bg-card border border-border rounded-xl p-5">
-              <div className={`text-2xl font-semibold mb-0.5 ${kpi.highlight ? "text-amber-500" : "text-foreground"}`}>
-                {kpi.value}
-              </div>
-              <div className="text-sm text-muted-foreground">{kpi.label}</div>
-            </div>
-          ))}
+          <KpiCard label={t.dashEntidad.misServicios} value={servicios.length} />
+          <KpiCard label={t.dashAdmin.activo} value={servicios.filter((s) => s.activo).length} />
+          <KpiCard label={t.dashEntidad.solicitudesRecibidas} value={solicitudes.length} />
+          <KpiCard label={t.dashFamilia.pendientes} value={pendientes} highlight={pendientes > 0} />
         </div>
 
         {/* Pestañas */}
-        <div className="flex gap-1 bg-card border border-border p-1 rounded-lg w-fit mb-6">
-          {(["servicios", "solicitudes"] as Pestaña[]).map((p) => (
-            <button
-              key={p}
-              onClick={() => setPestaña(p)}
-              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
-                pestaña === p ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {p === "solicitudes" ? t.dashEntidad.solicitudesRecibidas : t.dashEntidad.misServicios}
-              {p === "solicitudes" && pendientes > 0 && (
-                <span className="w-4 h-4 rounded-full bg-amber-500 text-white text-xs flex items-center justify-center font-semibold">
-                  {pendientes}
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
+        <TabBar<Pestaña>
+          tabs={[
+            { key: "servicios", label: t.dashEntidad.misServicios },
+            { key: "solicitudes", label: t.dashEntidad.solicitudesRecibidas, badge: pendientes },
+          ]}
+          active={pestaña}
+          onChange={setPestaña}
+        />
 
         {/* ── SERVICIOS ── */}
         {pestaña === "servicios" && (
@@ -271,6 +227,14 @@ export default function DashboardEntidad() {
                       <select value={form.tipo} onChange={(e) => setField("tipo", e.target.value)} className={inputClass}>
                         {TIPOS_SERVICIO.map((tp) => <option key={tp}>{tp}</option>)}
                       </select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-muted-foreground">{t.dashEntidad.plazas}</label>
+                      <input type="number" min="0"
+                        value={form.plazas ?? ""}
+                        placeholder={lang === "es" ? "Vacío = sin límite" : "Empty = unlimited"}
+                        onChange={(e) => setForm({ ...form, plazas: e.target.value === "" ? null : parseInt(e.target.value) })}
+                        className={inputClass} />
                     </div>
                   </div>
                   <div className="space-y-1.5">
@@ -323,76 +287,67 @@ export default function DashboardEntidad() {
 
             {/* Modal editar servicio */}
             {editandoServicio && (
-              <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center px-4" onClick={() => setEditandoServicio(null)}>
-                <div className="bg-card border border-border rounded-2xl max-w-lg w-full p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-                  <div className="flex items-start justify-between mb-5">
-                    <h2 className="text-base font-semibold text-foreground">{t.dashEntidad.editar}</h2>
-                    <button onClick={() => setEditandoServicio(null)} className="text-muted-foreground hover:text-foreground transition-colors">
-                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+              <Modal onClose={() => setEditandoServicio(null)} maxWidth="max-w-lg">
+                <ModalHeader title={t.dashEntidad.editar} onClose={() => setEditandoServicio(null)} />
+                <form onSubmit={handleGuardarEdicion} className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {[
+                      { label: `${t.dashEntidad.nombre} *`, field: "nombre" as keyof DatosCrearServicio, type: "text" },
+                      { label: `${t.dashEntidad.ubicacion} *`, field: "ubicacion" as keyof DatosCrearServicio, type: "text" },
+                      { label: `${t.dashEntidad.telefono} *`, field: "telefono" as keyof DatosCrearServicio, type: "tel" },
+                    ].map((f) => (
+                      <div key={f.field} className="space-y-1.5">
+                        <label className="text-xs font-medium text-muted-foreground">{f.label}</label>
+                        <input type={f.type} value={formEditar[f.field] as string}
+                          onChange={(e) => setFormEditar({ ...formEditar, [f.field]: e.target.value })}
+                          className={inputClass} />
+                      </div>
+                    ))}
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-muted-foreground">{t.dashEntidad.tipo}</label>
+                      <select value={formEditar.tipo}
+                        onChange={(e) => setFormEditar({ ...formEditar, tipo: e.target.value as TipoServicio })}
+                        className={inputClass}>
+                        {TIPOS_SERVICIO.map((tp) => <option key={tp}>{tp}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground">{t.dashEntidad.descripcion}</label>
+                    <textarea value={formEditar.descripcion}
+                      onChange={(e) => setFormEditar({ ...formEditar, descripcion: e.target.value })}
+                      rows={3}
+                      className="w-full px-3 py-2 rounded-lg border border-border bg-input text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors resize-none" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground">{t.dashEntidad.plazas}</label>
+                    <input type="number" min="0"
+                      value={formEditar.plazas ?? ""}
+                      placeholder={lang === "es" ? "Vacío = sin límite" : "Empty = unlimited"}
+                      onChange={(e) => setFormEditar({ ...formEditar, plazas: e.target.value === "" ? null : parseInt(e.target.value) })}
+                      className={inputClass} />
+                  </div>
+                  <div className="flex justify-end gap-3">
+                    <button type="button" onClick={() => setEditandoServicio(null)}
+                      className="px-4 py-2 rounded-lg border border-border text-muted-foreground hover:text-foreground text-sm transition-colors">
+                      {t.dashEntidad.cancelar}
+                    </button>
+                    <button type="submit" disabled={guardandoEdicion}
+                      className="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-medium transition-colors disabled:opacity-50">
+                      {guardandoEdicion ? t.dashEntidad.actualizando : t.dashEntidad.actualizar}
                     </button>
                   </div>
-                  <form onSubmit={handleGuardarEdicion} className="space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {[
-                        { label: `${t.dashEntidad.nombre} *`, field: "nombre" as keyof DatosCrearServicio, type: "text" },
-                        { label: `${t.dashEntidad.ubicacion} *`, field: "ubicacion" as keyof DatosCrearServicio, type: "text" },
-                        { label: `${t.dashEntidad.telefono} *`, field: "telefono" as keyof DatosCrearServicio, type: "tel" },
-                      ].map((f) => (
-                        <div key={f.field} className="space-y-1.5">
-                          <label className="text-xs font-medium text-muted-foreground">{f.label}</label>
-                          <input type={f.type} value={formEditar[f.field] as string}
-                            onChange={(e) => setFormEditar({ ...formEditar, [f.field]: e.target.value })}
-                            className={inputClass} />
-                        </div>
-                      ))}
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-medium text-muted-foreground">{t.dashEntidad.tipo}</label>
-                        <select value={formEditar.tipo}
-                          onChange={(e) => setFormEditar({ ...formEditar, tipo: e.target.value as TipoServicio })}
-                          className={inputClass}>
-                          {TIPOS_SERVICIO.map((tp) => <option key={tp}>{tp}</option>)}
-                        </select>
-                      </div>
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-muted-foreground">{t.dashEntidad.descripcion}</label>
-                      <textarea value={formEditar.descripcion}
-                        onChange={(e) => setFormEditar({ ...formEditar, descripcion: e.target.value })}
-                        rows={3}
-                        className="w-full px-3 py-2 rounded-lg border border-border bg-input text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors resize-none" />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-muted-foreground">{t.dashEntidad.plazas}</label>
-                      <input type="number" min="0"
-                        value={formEditar.plazas ?? ""}
-                        placeholder={lang === "es" ? "Vacío = sin límite" : "Empty = unlimited"}
-                        onChange={(e) => setFormEditar({ ...formEditar, plazas: e.target.value === "" ? null : parseInt(e.target.value) })}
-                        className={inputClass} />
-                    </div>
-                    <div className="flex justify-end gap-3">
-                      <button type="button" onClick={() => setEditandoServicio(null)}
-                        className="px-4 py-2 rounded-lg border border-border text-muted-foreground hover:text-foreground text-sm transition-colors">
-                        {t.dashEntidad.cancelar}
-                      </button>
-                      <button type="submit" disabled={guardandoEdicion}
-                        className="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-medium transition-colors disabled:opacity-50">
-                        {guardandoEdicion ? t.dashEntidad.actualizando : t.dashEntidad.actualizar}
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              </div>
+                </form>
+              </Modal>
             )}
 
             {cargandoServicios ? (
-              <div className="text-center py-16">
-                <div className="w-5 h-5 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin mx-auto mb-3" />
-              </div>
+              <LoadingSpinner />
             ) : servicios.length === 0 ? (
-              <div className="text-center py-16 border border-dashed border-border rounded-2xl">
-                <p className="text-sm font-medium text-foreground mb-1">{t.dashEntidad.sinServicios}</p>
-                <p className="text-xs text-muted-foreground">{lang === "es" ? `Pulsa \"+ ${t.dashEntidad.nuevoServicio}\" para empezar` : `Click \"+ ${t.dashEntidad.nuevoServicio}\" to start`}</p>
-              </div>
+              <EmptyState 
+                title={t.dashEntidad.sinServicios} 
+                subtitle={lang === "es" ? `Pulsa "+ ${t.dashEntidad.nuevoServicio}" para empezar` : `Click "+ ${t.dashEntidad.nuevoServicio}" to start`} 
+              />
             ) : (
               <div className="space-y-3">
                 {servicios.map((s: Servicio) => (
@@ -421,10 +376,28 @@ export default function DashboardEntidad() {
                         )}
                       </div>
                       <p className="text-xs text-muted-foreground mb-2 line-clamp-1">{s.descripcion}</p>
-                      <div className="flex flex-wrap gap-3 text-xs text-muted-foreground/60">
-                        <span>📍 {s.ubicacion}</span>
-                        <span>🏷 {s.tipo}</span>
-                        <span>👁 {s.visitas}</span>
+                      <div className="flex flex-wrap gap-4 text-xs text-muted-foreground/80 mt-1">
+                        <span className="flex items-center gap-1.5">
+                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                            <path d="M6 1C4.067 1 2.5 2.567 2.5 4.5c0 2.625 3.5 6.5 3.5 6.5s3.5-3.875 3.5-6.5C9.5 2.567 7.933 1 6 1z" stroke="currentColor" strokeWidth="1.2"/>
+                            <circle cx="6" cy="4.5" r="1" stroke="currentColor" strokeWidth="1.2"/>
+                          </svg>
+                          {s.ubicacion}
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                            <path d="M6.5 1.5l4 4a1.414 1.414 0 010 2l-3.5 3.5a1.414 1.414 0 01-2 0l-4-4V1.5h5.5z" stroke="currentColor" strokeWidth="1.2"/>
+                            <circle cx="3.5" cy="3.5" r="0.5" stroke="currentColor" strokeWidth="1.2"/>
+                          </svg>
+                          {s.tipo}
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                            <path d="M1 6c1.5-2.5 3.5-4 5-4s3.5 1.5 5 4-3.5 4-5 4-3.5-1.5-5-4z" stroke="currentColor" strokeWidth="1.2"/>
+                            <circle cx="6" cy="6" r="1.5" stroke="currentColor" strokeWidth="1.2"/>
+                          </svg>
+                          {s.visitas}
+                        </span>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
@@ -462,20 +435,41 @@ export default function DashboardEntidad() {
         {/* ── SOLICITUDES ── */}
         {pestaña === "solicitudes" && (
           <>
+            <div className="mb-4 flex flex-col sm:flex-row gap-2">
+              <input
+                type="text"
+                placeholder={lang === "es" ? "Buscar por servicio o familia..." : "Search by service or family..."}
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                className={`${inputClass} sm:w-64`}
+              />
+              <select
+                value={filtroEstado}
+                onChange={(e) => setFiltroEstado(e.target.value)}
+                className={`${inputClass} sm:w-auto`}
+              >
+                <option value="todos">{lang === "es" ? "Todos los estados" : "All states"}</option>
+                <option value="pendiente">{t.dashEntidad.pendienteLabel}</option>
+                <option value="aceptada">{t.dashEntidad.aceptadaLabel}</option>
+                <option value="rechazada">{t.dashEntidad.rechazadaLabel}</option>
+              </select>
+            </div>
+
             {cargandoSolicitudes ? (
-              <div className="text-center py-16">
-                <div className="w-5 h-5 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin mx-auto mb-3" />
-              </div>
+              <LoadingSpinner />
             ) : solicitudes.length === 0 ? (
-              <div className="text-center py-16 border border-dashed border-border rounded-2xl">
-                <p className="text-sm font-medium text-foreground mb-1">{t.dashEntidad.sinSolicitudes}</p>
-                <p className="text-xs text-muted-foreground">
-                  {lang === "es" ? "Cuando las familias soliciten tus servicios aparecerán aquí" : "When families request your services they will appear here"}
-                </p>
-              </div>
+              <EmptyState 
+                title={t.dashEntidad.sinSolicitudes} 
+                subtitle={lang === "es" ? "Cuando las familias soliciten tus servicios aparecerán aquí" : "When families request your services they will appear here"} 
+              />
+            ) : solicitudesFiltradas.length === 0 ? (
+              <EmptyState
+                title={lang === "es" ? "No se encontraron solicitudes" : "No requests found"}
+                subtitle={lang === "es" ? "Intenta con otros filtros de búsqueda" : "Try with different search filters"}
+              />
             ) : (
               <div className="space-y-3">
-                {solicitudes.map((s: Solicitud) => (
+                {solicitudesFiltradas.map((s: Solicitud) => (
                   <div key={s.id} className="bg-card border border-border rounded-xl p-5 hover:border-emerald-500/30 transition-colors">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 min-w-0">
@@ -523,71 +517,61 @@ export default function DashboardEntidad() {
 
       {/* Modal responder / modificar */}
       {solicitudActiva && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center px-4" onClick={() => setSolicitudActiva(null)}>
-          <div className="bg-card border border-border rounded-2xl max-w-md w-full p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-start justify-between mb-5">
-              <div>
-                <h2 className="text-base font-semibold text-foreground">
-                  {solicitudActiva.estado === "pendiente"
-                    ? (lang === "es" ? "Responder solicitud" : "Reply to request")
-                    : (lang === "es" ? "Modificar respuesta" : "Modify response")}
-                </h2>
-                <p className="text-xs text-muted-foreground mt-0.5">{lang === "es" ? "De" : "From"}: {solicitudActiva.nombre_familiar}</p>
-              </div>
-              <button onClick={() => setSolicitudActiva(null)} className="text-muted-foreground hover:text-foreground transition-colors">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
-              </button>
-            </div>
-            <div className="bg-muted rounded-lg p-3 mb-4 text-xs text-muted-foreground">
-              <p className="font-medium text-foreground mb-1">{solicitudActiva.servicio?.nombre}</p>
-              <p>{solicitudActiva.mensaje}</p>
-            </div>
-            {solicitudActiva.estado !== "pendiente" && (
-              <div className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs px-3 py-2.5 rounded-lg mb-4">
-                <svg width="13" height="13" viewBox="0 0 12 12" fill="none" className="shrink-0 mt-0.5">
-                  <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.2"/>
-                  <path d="M6 4v2.5M6 8v.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
-                </svg>
-                {lang === "es" ? "Esta solicitud ya fue respondida. Puedes cambiar la decisión." : "This request was already answered. You can change the decision."}
-              </div>
-            )}
-            <form onSubmit={handleResponder} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                {(["aceptada", "rechazada"] as const).map((e) => (
-                  <button key={e} type="button"
-                    onClick={() => setRespuesta({ ...respuesta, estado: e })}
-                    className={`py-2.5 rounded-lg border text-sm font-medium transition-all ${
-                      respuesta.estado === e
-                        ? e === "aceptada" ? "border-emerald-500 bg-emerald-500/10 text-emerald-500" : "border-red-500 bg-red-500/10 text-red-500"
-                        : "border-border text-muted-foreground hover:border-border-strong"
-                    }`}>
-                    {e === "aceptada" ? `✓ ${t.dashEntidad.aceptar}` : `✗ ${t.dashEntidad.rechazar}`}
-                  </button>
-                ))}
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">
-                  {lang === "es" ? "Mensaje para la familia *" : "Message to the family *"}
-                </label>
-                <textarea
-                  placeholder={lang === "es" ? "Explica tu decisión..." : "Explain your decision..."}
-                  value={respuesta.mensaje}
-                  onChange={(e) => setRespuesta({ ...respuesta, mensaje: e.target.value })}
-                  rows={3}
-                  className="w-full px-3 py-2 rounded-lg border border-border bg-input text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors resize-none"
-                />
-              </div>
-              <button type="submit" disabled={guardandoRespuesta || !respuesta.mensaje.trim()}
-                className="w-full py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-semibold transition-colors disabled:opacity-50">
-                {guardandoRespuesta
-                  ? (lang === "es" ? "Guardando..." : "Saving...")
-                  : solicitudActiva.estado === "pendiente"
-                    ? (lang === "es" ? "Enviar respuesta" : "Send reply")
-                    : (lang === "es" ? "Guardar cambios" : "Save changes")}
-              </button>
-            </form>
+        <Modal onClose={() => setSolicitudActiva(null)} maxWidth="max-w-md">
+          <ModalHeader 
+            title={solicitudActiva.estado === "pendiente" ? (lang === "es" ? "Responder solicitud" : "Reply to request") : (lang === "es" ? "Modificar respuesta" : "Modify response")}
+            subtitle={`${lang === "es" ? "De" : "From"}: ${solicitudActiva.nombre_familiar}`}
+            onClose={() => setSolicitudActiva(null)} 
+          />
+          <div className="bg-muted rounded-lg p-3 mb-4 text-xs text-muted-foreground">
+            <p className="font-medium text-foreground mb-1">{solicitudActiva.servicio?.nombre}</p>
+            <p>{solicitudActiva.mensaje}</p>
           </div>
-        </div>
+          {solicitudActiva.estado !== "pendiente" && (
+            <div className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs px-3 py-2.5 rounded-lg mb-4">
+              <svg width="13" height="13" viewBox="0 0 12 12" fill="none" className="shrink-0 mt-0.5">
+                <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.2"/>
+                <path d="M6 4v2.5M6 8v.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+              </svg>
+              {lang === "es" ? "Esta solicitud ya fue respondida. Puedes cambiar la decisión." : "This request was already answered. You can change the decision."}
+            </div>
+          )}
+          <form onSubmit={handleResponder} className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              {(["aceptada", "rechazada"] as const).map((e) => (
+                <button key={e} type="button"
+                  onClick={() => setRespuesta({ ...respuesta, estado: e })}
+                  className={`py-2.5 rounded-lg border text-sm font-medium transition-all ${
+                    respuesta.estado === e
+                      ? e === "aceptada" ? "border-emerald-500 bg-emerald-500/10 text-emerald-500" : "border-red-500 bg-red-500/10 text-red-500"
+                      : "border-border text-muted-foreground hover:border-border-strong"
+                  }`}>
+                  {e === "aceptada" ? `✓ ${t.dashEntidad.aceptar}` : `✗ ${t.dashEntidad.rechazar}`}
+                </button>
+              ))}
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">
+                {lang === "es" ? "Mensaje para la familia *" : "Message to the family *"}
+              </label>
+              <textarea
+                placeholder={lang === "es" ? "Explica tu decisión..." : "Explain your decision..."}
+                value={respuesta.mensaje}
+                onChange={(e) => setRespuesta({ ...respuesta, mensaje: e.target.value })}
+                rows={3}
+                className="w-full px-3 py-2 rounded-lg border border-border bg-input text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors resize-none"
+              />
+            </div>
+            <button type="submit" disabled={guardandoRespuesta || !respuesta.mensaje.trim()}
+              className="w-full py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-semibold transition-colors disabled:opacity-50">
+              {guardandoRespuesta
+                ? (lang === "es" ? "Guardando..." : "Saving...")
+                : solicitudActiva.estado === "pendiente"
+                  ? (lang === "es" ? "Enviar respuesta" : "Send reply")
+                  : (lang === "es" ? "Guardar cambios" : "Save changes")}
+            </button>
+          </form>
+        </Modal>
       )}
     </div>
   )

@@ -10,14 +10,21 @@ const COLORES_HERO   = ["#10b981", "#047857", "#6ee7b7"] // verde-principal, ver
 const COLORES_FOOTER = ["#6ee7b7", "#10b981", "#6ee7b7"]
 const COLORES_AUTH   = ["#10b981", "#059669", "#34d399"]
 
+const Figura = ({ color, clsBase, clsHead }: { color: string, clsBase: string, clsHead: string }) => (
+  <div 
+    style={{ background: color }} 
+    className={`${clsBase} rounded-t-full relative before:content-[''] before:absolute ${clsHead} before:left-1/2 before:-translate-x-1/2 before:rounded-full before:bg-inherit`} 
+  />
+)
+
 export default function LogoFamilia({ variante = "header" }: LogoFamiliaProps) {
   if (variante === "hero") {
     const [c1, c2, c3] = COLORES_HERO
     return (
       <div className="flex items-end justify-center gap-1.5 h-24">
-        <div style={{ background: c1 }} className="w-7 h-12 rounded-t-full relative before:content-[''] before:absolute before:w-4 before:h-4 before:-top-2.5 before:left-1/2 before:-translate-x-1/2 before:rounded-full before:bg-inherit" />
-        <div style={{ background: c2 }} className="w-7 h-16 rounded-t-full relative before:content-[''] before:absolute before:w-4 before:h-4 before:-top-2.5 before:left-1/2 before:-translate-x-1/2 before:rounded-full before:bg-inherit" />
-        <div style={{ background: c3 }} className="w-7 h-12 rounded-t-full relative before:content-[''] before:absolute before:w-4 before:h-4 before:-top-2.5 before:left-1/2 before:-translate-x-1/2 before:rounded-full before:bg-inherit" />
+        <Figura color={c1} clsBase="w-7 h-12" clsHead="before:w-4 before:h-4 before:-top-2.5" />
+        <Figura color={c2} clsBase="w-7 h-16" clsHead="before:w-4 before:h-4 before:-top-2.5" />
+        <Figura color={c3} clsBase="w-7 h-12" clsHead="before:w-4 before:h-4 before:-top-2.5" />
       </div>
     )
   }
@@ -26,9 +33,9 @@ export default function LogoFamilia({ variante = "header" }: LogoFamiliaProps) {
     const [c1, c2, c3] = COLORES_FOOTER
     return (
       <div className="flex items-end justify-center gap-1 h-10">
-        <div style={{ background: c1 }} className="w-3.5 h-5 rounded-t-full relative before:content-[''] before:absolute before:w-2 before:h-2 before:-top-1 before:left-1/2 before:-translate-x-1/2 before:rounded-full before:bg-inherit" />
-        <div style={{ background: c2 }} className="w-3.5 h-7 rounded-t-full relative before:content-[''] before:absolute before:w-2 before:h-2 before:-top-1 before:left-1/2 before:-translate-x-1/2 before:rounded-full before:bg-inherit" />
-        <div style={{ background: c3 }} className="w-3.5 h-5 rounded-t-full relative before:content-[''] before:absolute before:w-2 before:h-2 before:-top-1 before:left-1/2 before:-translate-x-1/2 before:rounded-full before:bg-inherit" />
+        <Figura color={c1} clsBase="w-3.5 h-5" clsHead="before:w-2 before:h-2 before:-top-1" />
+        <Figura color={c2} clsBase="w-3.5 h-7" clsHead="before:w-2 before:h-2 before:-top-1" />
+        <Figura color={c3} clsBase="w-3.5 h-5" clsHead="before:w-2 before:h-2 before:-top-1" />
       </div>
     )
   }
@@ -37,9 +44,9 @@ export default function LogoFamilia({ variante = "header" }: LogoFamiliaProps) {
     const [c1, c2, c3] = COLORES_AUTH
     return (
       <div className="flex items-end justify-center gap-1 h-14">
-        <div style={{ background: c1 }} className="w-4 h-7 rounded-t-full relative before:content-[''] before:absolute before:w-3 before:h-3 before:-top-1.5 before:left-1/2 before:-translate-x-1/2 before:rounded-full before:bg-inherit" />
-        <div style={{ background: c2 }} className="w-4 h-10 rounded-t-full relative before:content-[''] before:absolute before:w-3 before:h-3 before:-top-1.5 before:left-1/2 before:-translate-x-1/2 before:rounded-full before:bg-inherit" />
-        <div style={{ background: c3 }} className="w-4 h-7 rounded-t-full relative before:content-[''] before:absolute before:w-3 before:h-3 before:-top-1.5 before:left-1/2 before:-translate-x-1/2 before:rounded-full before:bg-inherit" />
+        <Figura color={c1} clsBase="w-4 h-7" clsHead="before:w-3 before:h-3 before:-top-1.5" />
+        <Figura color={c2} clsBase="w-4 h-10" clsHead="before:w-3 before:h-3 before:-top-1.5" />
+        <Figura color={c3} clsBase="w-4 h-7" clsHead="before:w-3 before:h-3 before:-top-1.5" />
       </div>
     )
   }
@@ -48,9 +55,9 @@ export default function LogoFamilia({ variante = "header" }: LogoFamiliaProps) {
   const [c1, c2, c3] = COLORES_HEADER
   return (
     <div className="flex items-end justify-center gap-0.5 h-10">
-      <div style={{ background: c1 }} className="w-3 h-5 rounded-t-full relative before:content-[''] before:absolute before:w-2 before:h-2 before:-top-1 before:left-1/2 before:-translate-x-1/2 before:rounded-full before:bg-inherit" />
-      <div style={{ background: c2 }} className="w-3 h-7 rounded-t-full relative before:content-[''] before:absolute before:w-2 before:h-2 before:-top-1 before:left-1/2 before:-translate-x-1/2 before:rounded-full before:bg-inherit" />
-      <div style={{ background: c3 }} className="w-3 h-5 rounded-t-full relative before:content-[''] before:absolute before:w-2 before:h-2 before:-top-1 before:left-1/2 before:-translate-x-1/2 before:rounded-full before:bg-inherit" />
+      <Figura color={c1} clsBase="w-3 h-5" clsHead="before:w-2 before:h-2 before:-top-1" />
+      <Figura color={c2} clsBase="w-3 h-7" clsHead="before:w-2 before:h-2 before:-top-1" />
+      <Figura color={c3} clsBase="w-3 h-5" clsHead="before:w-2 before:h-2 before:-top-1" />
     </div>
   )
 }

@@ -6,10 +6,13 @@ import { usePerfilStore } from "@/store/perfilStore"
 import type { Perfil } from "@/interfaces/Perfil"
 import type { Servicio } from "@/interfaces/Servicio"
 import type { RolUsuario } from "@/interfaces/Usuario"
-import LogoFamilia from "../../components/layout/LogoFamilia"
-import { useThemeStore } from "@/store/themeStore"
 import { useLangStore } from "@/store/langStore"
 import { useT } from "@/i18n/useT"
+import DashboardHeader from "@/components/dashboard/DashboardHeader"
+import KpiCard from "@/components/dashboard/KpiCard"
+import TabBar from "@/components/dashboard/TabBar"
+import LoadingSpinner from "@/components/dashboard/LoadingSpinner"
+import Modal from "@/components/dashboard/Modal"
 
 type Pestaña = "usuarios" | "servicios"
 const ROLES: RolUsuario[] = ["familia", "entidad", "admin"]
@@ -21,33 +24,32 @@ type AccionConfirm = {
 }
 
 export default function DashboardAdmin() {
-  const { usuario, cerrarSesion } = useAuthStore()
+  const { usuario } = useAuthStore()
   const {
     perfiles, servicios, cargando, error: adminError,
     cargarPerfiles, cambiarRol, toggleActivoUsuario, eliminarUsuario,
     cargarTodosServicios, eliminarServicio, toggleActivoServicio,
   } = useAdminStore()
   const { perfil, cargarPerfil } = usePerfilStore()
-  const { theme, toggleTheme } = useThemeStore()
-  const { lang, toggleLang } = useLangStore()
+  const { lang } = useLangStore()
   const t = useT()
 
   const [pestaña, setPestaña] = useState<Pestaña>("usuarios")
   const [confirm, setConfirm] = useState<AccionConfirm | null>(null)
 
   useEffect(() => {
-    cargarPerfiles()
-    cargarTodosServicios()
-    cargarPerfil()
-  }, [])
+    if (usuario?.id) {
+      cargarPerfiles()
+      cargarTodosServicios()
+      cargarPerfil()
+    }
+  }, [usuario?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const nombreAdmin = perfil?.nombre ?? usuario?.email ?? ""
 
   const totalFamilias  = perfiles.filter((p) => p.rol === "familia").length
   const totalEntidades = perfiles.filter((p) => p.rol === "entidad").length
   const totalActivos   = servicios.filter((s) => s.activo).length
-
-  const thBtn = "w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
 
   const handleConfirm = async () => {
     if (!confirm) return
@@ -108,9 +110,8 @@ export default function DashboardAdmin() {
 
       {/* Modal confirmación */}
       {confirm && modalConfig && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setConfirm(null)} />
-          <div className="relative bg-card border border-border rounded-2xl shadow-2xl w-full max-w-md p-6 animate-fade-up">
+        <Modal onClose={() => setConfirm(null)}>
+          <div className="animate-fade-up">
             <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${modalConfig.iconColor}`}>
               {modalConfig.icon}
             </div>
@@ -127,53 +128,14 @@ export default function DashboardAdmin() {
               </button>
             </div>
           </div>
-        </div>
+        </Modal>
       )}
 
-      {/* Header */}
-      <header className="border-b border-border bg-card px-6 lg:px-8 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link to="/" className="flex items-center gap-2">
-              <LogoFamilia variante="header" />
-              <span className="text-sm font-semibold text-foreground">ConciliaEx</span>
-            </Link>
-            <span className="text-muted-foreground/30">·</span>
-            <span className="text-sm text-muted-foreground">{t.dashAdmin.titulo}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <button onClick={toggleTheme} className={thBtn}>
-              {theme === "dark" ? (
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="5" stroke="currentColor" strokeWidth="1.8"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
-              ) : (
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              )}
-            </button>
-            <button onClick={toggleLang} className="px-2 py-1 rounded-lg text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted border border-border transition-colors">
-              {lang === "es" ? "EN" : "ES"}
-            </button>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-violet-500/10 text-violet-500 text-xs font-medium border border-violet-500/20">
-              Admin
-            </span>
-            <Link to="/perfil" className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border hover:border-border-strong transition-colors">
-              {perfil?.avatar_url ? (
-                <img src={perfil.avatar_url} alt={nombreAdmin} className="w-5 h-5 rounded-full object-cover ring-1 ring-border" />
-              ) : (
-                <div className="w-5 h-5 rounded-full bg-violet-500/20 flex items-center justify-center text-xs text-violet-500 font-medium">
-                  {nombreAdmin.charAt(0).toUpperCase()}
-                </div>
-              )}
-              <span className="text-xs text-muted-foreground hidden sm:block">{nombreAdmin}</span>
-            </Link>
-            <button onClick={() => cerrarSesion()} className="px-3 py-1.5 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
-              {t.nav.salir}
-            </button>
-          </div>
-        </div>
-      </header>
+      {/* Header unificado */}
+      <DashboardHeader subtitle={t.dashAdmin.titulo} />
 
       {adminError && (
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 pt-4">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 pt-28">
           <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 text-red-500 text-xs px-4 py-2.5 rounded-lg">
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
               <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.2"/>
@@ -184,7 +146,7 @@ export default function DashboardAdmin() {
         </div>
       )}
 
-      <main className="max-w-7xl mx-auto px-6 lg:px-8 py-10">
+      <main className={`max-w-7xl mx-auto px-6 lg:px-8 pb-10 ${adminError ? "pt-6" : "pt-28"}`}>
         <div className="mb-8">
           <h1 className="text-2xl font-semibold text-foreground mb-1">{t.dashAdmin.titulo}</h1>
           <p className="text-sm text-muted-foreground">
@@ -194,37 +156,24 @@ export default function DashboardAdmin() {
 
         {/* KPIs */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-          {[
-            { label: t.dashAdmin.usuarios,                             value: perfiles.length },
-            { label: lang === "es" ? "Familias" : "Families",         value: totalFamilias },
-            { label: t.dashAdmin.entidades,                            value: totalEntidades },
-            { label: t.dashAdmin.servicios,                            value: totalActivos },
-          ].map((kpi) => (
-            <div key={kpi.label} className="bg-card border border-border rounded-xl p-5">
-              <div className="text-2xl font-semibold text-foreground mb-0.5">{kpi.value}</div>
-              <div className="text-sm text-muted-foreground">{kpi.label}</div>
-            </div>
-          ))}
+          <KpiCard label={t.dashAdmin.usuarios} value={perfiles.length} />
+          <KpiCard label={lang === "es" ? "Familias" : "Families"} value={totalFamilias} />
+          <KpiCard label={t.dashAdmin.entidades} value={totalEntidades} />
+          <KpiCard label={t.dashAdmin.servicios} value={totalActivos} />
         </div>
 
         {/* Pestañas */}
-        <div className="flex gap-1 bg-card border border-border p-1 rounded-lg w-fit mb-6">
-          {(["usuarios", "servicios"] as Pestaña[]).map((p) => (
-            <button key={p} onClick={() => setPestaña(p)}
-              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                pestaña === p ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground"
-              }`}>
-              {p === "usuarios"
-                ? `${t.dashAdmin.usuarios} (${perfiles.length})`
-                : `${t.dashAdmin.servicios} (${servicios.length})`}
-            </button>
-          ))}
-        </div>
+        <TabBar<Pestaña>
+          tabs={[
+            { key: "usuarios", label: `${t.dashAdmin.usuarios} (${perfiles.length})` },
+            { key: "servicios", label: `${t.dashAdmin.servicios} (${servicios.length})` }
+          ]}
+          active={pestaña}
+          onChange={setPestaña}
+        />
 
         {cargando ? (
-          <div className="text-center py-16">
-            <div className="w-5 h-5 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin mx-auto mb-3" />
-          </div>
+          <LoadingSpinner />
         ) : pestaña === "usuarios" ? (
 
           <div className="bg-card border border-border rounded-xl overflow-hidden">
@@ -324,7 +273,13 @@ export default function DashboardAdmin() {
                   <tr key={s.id} className="hover:bg-muted/40 transition-colors">
                     <td className="px-5 py-3.5">
                       <div className="font-medium text-foreground truncate max-w-[200px]">{s.nombre}</div>
-                      <div className="text-xs text-muted-foreground">📍 {s.ubicacion}</div>
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                          <path d="M6 1C4.067 1 2.5 2.567 2.5 4.5c0 2.625 3.5 6.5 3.5 6.5s3.5-3.875 3.5-6.5C9.5 2.567 7.933 1 6 1z" stroke="currentColor" strokeWidth="1.2"/>
+                          <circle cx="6" cy="4.5" r="1" stroke="currentColor" strokeWidth="1.2"/>
+                        </svg>
+                        {s.ubicacion}
+                      </div>
                     </td>
                     <td className="px-5 py-3.5">
                       <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 font-medium">
