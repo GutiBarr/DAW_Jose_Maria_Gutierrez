@@ -132,14 +132,9 @@ export class SupabaseAuthRepository implements AuthRepository {
 
   async obtenerUsuarioActual(): Promise<Usuario | null> {
     const { data: { session } } = await supabase.auth.getSession()
-    if (!session) return null
+    if (!session?.user) return null
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) return null
-
+    const user = session.user
     const metadata = user.user_metadata || {}
 
     return {

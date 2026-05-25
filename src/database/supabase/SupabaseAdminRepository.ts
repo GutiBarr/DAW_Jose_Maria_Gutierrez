@@ -60,22 +60,8 @@ export class SupabaseAdminRepository implements AdminRepository {
   }
 
   async eliminarUsuario(id: string) {
-    // 1. Borrar primero todos sus servicios (evita servicios huérfanos visibles)
-    const { error: errorServicios } = await supabase
-      .from("servicios")
-      .delete()
-      .eq("entidad_id", id)
-
-    if (errorServicios) {
-      console.error("eliminarUsuario (servicios):", errorServicios.message)
-      // Continuamos de todas formas, el perfil se puede borrar
-    }
-
-    // 2. Borrar el perfil
-    const { error } = await supabase
-      .from("perfiles")
-      .delete()
-      .eq("id", id)
+    // La función RPC borra servicios, solicitudes, perfil y auth.users en orden correcto
+    const { error } = await supabase.rpc("admin_delete_user", { user_id: id })
 
     if (error) {
       console.error("eliminarUsuario:", error.message)

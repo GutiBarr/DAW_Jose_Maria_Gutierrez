@@ -5,6 +5,9 @@ import { createServicioRepository } from "@/database/repositories"
 
 const servicioRepo = createServicioRepository()
 
+let searchIdActual    = 0
+let cargarServiciosId = 0
+
 interface ServicioState {
   servicios:        Servicio[]
   resultados:       Servicio[]
@@ -33,28 +36,36 @@ export const useServicioStore = create<ServicioState>()((set, get) => ({
   reset: () => set({ servicios: [], resultados: [], cargando: false, cargandoBusqueda: false, error: null }),
 
   cargarMisServicios: async () => {
+    const miId = ++cargarServiciosId
     set({ cargando: true, error: null })
     try {
       const servicios = await servicioRepo.obtenerMisServicios()
+      if (miId !== cargarServiciosId) return
       set({ servicios })
     } catch (e) {
+      if (miId !== cargarServiciosId) return
       console.error("cargarMisServicios error:", e)
       set({ error: "Error al cargar los servicios" })
     } finally {
-      set({ cargando: false })
+      if (miId === cargarServiciosId) set({ cargando: false })
     }
   },
 
   buscarServicios: async (filtros) => {
+    const miId = ++searchIdActual
     set({ cargandoBusqueda: true, error: null })
     try {
       const resultados = await servicioRepo.buscarServicios(filtros)
+      if (miId !== searchIdActual) return
       set({ resultados })
     } catch (e) {
+      if (miId !== searchIdActual) return
       console.error("buscarServicios error:", e)
       set({ resultados: [], error: "Error al buscar servicios" })
     } finally {
-      set({ cargandoBusqueda: false })
+      if (miId === searchIdActual) {
+        set({ cargandoBusqueda: false })
+      }
     }
   },
 

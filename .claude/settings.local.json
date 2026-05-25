@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(ls \"c:\\\\Users\\\\Guti\\\\.claude\\\\projects\\\\c--Users-Guti-Desktop-Proyecto-Intermodular-DAW-Jose-Maria-Gutierrez\\\\\" 2>/dev/null || echo \"Directory not found\")",
+      "Read(//c/Users/Guti/.claude/projects/c--Users-Guti-Desktop-Proyecto-Intermodular-DAW-Jose-Maria-Gutierrez\" 2>/dev/**)"
+    ]
+  }
+}

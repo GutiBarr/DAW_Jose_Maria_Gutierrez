@@ -12,6 +12,7 @@ import DashboardHeader from "@/components/dashboard/DashboardHeader"
 import KpiCard from "@/components/dashboard/KpiCard"
 import EmptyState from "@/components/dashboard/EmptyState"
 import LoadingSpinner from "@/components/dashboard/LoadingSpinner"
+import { SolicitudCardSkeleton } from "@/components/dashboard/Skeleton"
 import Modal, { ModalHeader } from "@/components/dashboard/Modal"
 
 export default function DashboardFamilia() {
@@ -106,7 +107,9 @@ export default function DashboardFamilia() {
 
         {/* Lista de solicitudes */}
         {cargando ? (
-          <LoadingSpinner />
+          <div className="space-y-3">
+            {Array.from({ length: 4 }).map((_, i) => <SolicitudCardSkeleton key={i} />)}
+          </div>
         ) : solicitudes.length === 0 ? (
           <EmptyState
             title={t.dashFamilia.sinSolicitudes}

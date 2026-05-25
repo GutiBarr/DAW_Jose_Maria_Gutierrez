@@ -100,9 +100,9 @@ export default function Registro() {
 
           <p className="text-center text-xs text-muted-foreground/60 mt-8">
             {t.registro.terminosTexto}{" "}
-            <a href="#" className="text-emerald-500 hover:underline">{t.registro.terminos}</a>{" "}
+            <a href="/legal/terminos" target="_blank" rel="noopener noreferrer" className="text-emerald-500 hover:underline">{t.registro.terminos}</a>{" "}
             y la{" "}
-            <a href="#" className="text-emerald-500 hover:underline">{t.registro.privacidad}</a>.
+            <a href="/legal/privacidad" target="_blank" rel="noopener noreferrer" className="text-emerald-500 hover:underline">{t.registro.privacidad}</a>.
           </p>
         </div>
       </div>

@@ -123,9 +123,9 @@ export default function RegistroFamilia() {
                 className="mt-0.5 w-4 h-4 rounded border-border bg-input accent-emerald-500 cursor-pointer" />
               <label htmlFor="terminos" className="text-xs text-muted-foreground cursor-pointer leading-relaxed">
                 {t.registroFamilia.acepto}{" "}
-                <a href="#" className="text-emerald-500 hover:underline">{t.registroFamilia.terminos}</a>{" "}
+                <a href="/legal/terminos" target="_blank" rel="noopener noreferrer" className="text-emerald-500 hover:underline">{t.registroFamilia.terminos}</a>{" "}
                 {t.registroFamilia.y}{" "}
-                <a href="#" className="text-emerald-500 hover:underline">{t.registroFamilia.privacidad}</a>
+                <a href="/legal/privacidad" target="_blank" rel="noopener noreferrer" className="text-emerald-500 hover:underline">{t.registroFamilia.privacidad}</a>
               </label>
             </div>
 

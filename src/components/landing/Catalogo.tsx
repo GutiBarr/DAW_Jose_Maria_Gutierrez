@@ -5,6 +5,7 @@ import { useServicioStore } from "@/store/servicioStore"
 import type { Servicio, TipoServicio } from "@/interfaces/Servicio"
 import { useT } from "@/i18n/useT"
 import { TIPOS_SERVICIO } from "@/lib/constants"
+import { CatalogoCardSkeleton } from "@/components/dashboard/Skeleton"
 
 
 export default function Catalogo({ variante = "full" }: { variante?: "landing" | "full" }) {
@@ -150,9 +151,10 @@ export default function Catalogo({ variante = "full" }: { variante?: "landing" |
 
         {/* Resultados */}
         {cargandoBusqueda ? (
-          <div className="text-center py-16">
-            <div className="w-6 h-6 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin mx-auto mb-3" />
-            <p className="text-sm text-muted-foreground">{t.catalogo.buscando}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {Array.from({ length: variante === "full" ? 6 : 3 }).map((_, i) => (
+              <CatalogoCardSkeleton key={i} />
+            ))}
           </div>
         ) : serviciosAMostrar.length === 0 ? (
           <div className="text-center py-16 border border-dashed border-border rounded-2xl">

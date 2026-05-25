@@ -62,7 +62,7 @@ export interface Translations {
     datosAcceso: string; email: string; password: string; passwordPlaceholder: string
     confirmar: string; confirmarPlaceholder: string; acepto: string; terminos: string
     y: string; privacidad: string; registrar: string; registrando: string; ver: string; ocultar: string
-    errPassNoCoinciden: string; errPassCorta: string; errTerminos: string
+    errPassNoCoinciden: string; errPassCorta: string; errTerminos: string; errTelefono: string
   }
   perfil: {
     titulo: string; guardando: string; guardar: string; cancelar: string; editar: string
@@ -73,7 +73,7 @@ export interface Translations {
     subtitulo: string; fotoPerfilTitulo: string; avatarFormato: string
     informacion: string; direccion: string; tipoCuenta: string
     rolAdmin: string; rolEntidad: string; rolFamilia: string
-    passwordActualizada: string; cambiando: string; perfilActualizado: string
+    passwordActualizada: string; cambiando: string; perfilActualizado: string; errTelefono: string
   }
   dashFamilia: {
     bienvenido: string; resumen: string; pendientes: string; aceptadas: string
@@ -101,6 +101,7 @@ export interface Translations {
     yaRespondida: string; mensajeFamilia: string; explicaTuDecision: string
     guardando: string; enviarRespuesta: string; guardarCambios: string
     si: string; no: string
+    confirmarEliminarTitulo: string; confirmarEliminarDesc: string
   }
   dashAdmin: {
     titulo: string; usuarios: string; entidades: string; servicios: string; solicitudes: string
@@ -330,6 +331,7 @@ export const es: Translations = {
     errPassNoCoinciden: "Las contraseñas no coinciden",
     errPassCorta: "La contraseña debe tener mínimo 6 caracteres",
     errTerminos: "Debes aceptar los términos y condiciones",
+    errTelefono: "El teléfono no es válido. Debe tener 9 dígitos y empezar por 6, 7, 8 o 9",
   },
 
   // Registro entidad
@@ -365,6 +367,7 @@ export const es: Translations = {
     errPassNoCoinciden: "Las contraseñas no coinciden",
     errPassCorta: "La contraseña debe tener mínimo 6 caracteres",
     errTerminos: "Debes aceptar los términos y condiciones",
+    errTelefono: "El teléfono no es válido. Debe tener 9 dígitos y empezar por 6, 7, 8 o 9",
   },
 
   // Perfil
@@ -402,6 +405,7 @@ export const es: Translations = {
     passwordActualizada: "Contraseña actualizada correctamente",
     cambiando: "Cambiando...",
     perfilActualizado: "Perfil actualizado correctamente",
+    errTelefono: "El teléfono no es válido. Debe tener 9 dígitos y empezar por 6, 7, 8 o 9",
   },
 
   // Dashboard familia
@@ -486,6 +490,8 @@ export const es: Translations = {
     guardarCambios: "Guardar cambios",
     si: "Sí",
     no: "No",
+    confirmarEliminarTitulo: "¿Eliminar servicio?",
+    confirmarEliminarDesc: "Esta acción no se puede deshacer. El servicio será eliminado permanentemente.",
   },
 
   // Dashboard admin

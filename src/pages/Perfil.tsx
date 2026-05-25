@@ -9,6 +9,7 @@ import { useLangStore } from "@/store/langStore"
 import { useT } from "@/i18n/useT"
 import { supabase } from "@/database/supabase/Client"
 import { inputClass } from "@/lib/styles"
+import { esTelefonoValido } from "@/lib/validaciones"
 
 export default function Perfil() {
   const { usuario } = useAuthStore()
@@ -59,6 +60,10 @@ export default function Perfil() {
   }
 
   const handleSubmit = async () => {
+    if (form.telefono && !esTelefonoValido(form.telefono)) {
+      setError(t.perfil.errTelefono)
+      return
+    }
     setGuardando(true)
     setError("")
     setExito(false)

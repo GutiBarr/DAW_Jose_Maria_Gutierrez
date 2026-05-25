@@ -188,6 +188,7 @@ export const en: Translations = {
     errPassNoCoinciden: "Passwords do not match",
     errPassCorta: "Password must be at least 6 characters",
     errTerminos: "You must accept the terms and conditions",
+    errTelefono: "Invalid phone number. Must be 9 digits starting with 6, 7, 8 or 9",
   },
 
   // Registro entidad
@@ -223,6 +224,7 @@ export const en: Translations = {
     errPassNoCoinciden: "Passwords do not match",
     errPassCorta: "Password must be at least 6 characters",
     errTerminos: "You must accept the terms and conditions",
+    errTelefono: "Invalid phone number. Must be 9 digits starting with 6, 7, 8 or 9",
   },
 
   // Perfil
@@ -260,6 +262,7 @@ export const en: Translations = {
     passwordActualizada: "Password updated successfully",
     cambiando: "Changing...",
     perfilActualizado: "Profile updated successfully",
+    errTelefono: "Invalid phone number. Must be 9 digits starting with 6, 7, 8 or 9",
   },
 
   // Dashboard familia
@@ -344,6 +347,8 @@ export const en: Translations = {
     guardarCambios: "Save changes",
     si: "Yes",
     no: "No",
+    confirmarEliminarTitulo: "Delete service?",
+    confirmarEliminarDesc: "This action cannot be undone. The service will be permanently deleted.",
   },
 
   // Dashboard admin

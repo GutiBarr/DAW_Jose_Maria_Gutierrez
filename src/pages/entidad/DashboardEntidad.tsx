@@ -17,6 +17,7 @@ import KpiCard from "@/components/dashboard/KpiCard"
 import TabBar from "@/components/dashboard/TabBar"
 import EmptyState from "@/components/dashboard/EmptyState"
 import LoadingSpinner from "@/components/dashboard/LoadingSpinner"
+import { ServicioCardSkeleton, SolicitudCardSkeleton } from "@/components/dashboard/Skeleton"
 import Modal, { ModalHeader } from "@/components/dashboard/Modal"
 import ToggleActivoButton from "@/components/dashboard/ToggleActivoButton"
 
@@ -48,6 +49,9 @@ export default function DashboardEntidad() {
     confirmEliminar, setConfirmEliminar,
     editandoServicio, setEditandoServicio,
     formEditar, setFormEditar,
+    archivoImagenEditar, setArchivoImagenEditar,
+    previstaImagenEditar, setPrevistaImagenEditar,
+    errorEditar,
     guardandoEdicion,
     handleCrear,
     handleAbrirEditar,
@@ -84,7 +88,7 @@ export default function DashboardEntidad() {
 
   return (
     <div className="min-h-screen bg-background">
-      <DashboardHeader subtitle={t.dashEntidad.bienvenido} />
+      <DashboardHeader subtitle={`${t.dashEntidad.bienvenido} ${nombreEntidad}`.trim()} />
 
       <main className="max-w-6xl mx-auto px-6 lg:px-8 pt-28 pb-10">
         <div className="flex items-start justify-between mb-8">
@@ -246,6 +250,36 @@ export default function DashboardEntidad() {
                       onChange={(e) => setFormEditar({ ...formEditar, plazas: e.target.value === "" ? null : parseInt(e.target.value) })}
                       className={inputClass} />
                   </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground">
+                      {t.dashEntidad.imagen} <span className="text-muted-foreground/50">({t.dashEntidad.opcional})</span>
+                    </label>
+                    <input type="file" accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0]
+                        if (!file) return
+                        setArchivoImagenEditar(file)
+                        setPrevistaImagenEditar(URL.createObjectURL(file))
+                      }}
+                      className="w-full text-sm text-muted-foreground file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-emerald-500/10 file:text-emerald-500 hover:file:bg-emerald-500/20 cursor-pointer"
+                    />
+                    {previstaImagenEditar && (
+                      <div className="relative mt-2 w-full h-32 rounded-lg overflow-hidden border border-border">
+                        <img src={previstaImagenEditar} alt="Preview" className="w-full h-full object-cover" />
+                        <button type="button"
+                          onClick={() => {
+                            setArchivoImagenEditar(null)
+                            setPrevistaImagenEditar("")
+                            setFormEditar({ ...formEditar, imagen_url: "" })
+                          }}
+                          className="absolute top-2 right-2 bg-card rounded-full w-6 h-6 flex items-center justify-center text-muted-foreground hover:text-foreground border border-border text-xs"
+                        >✕</button>
+                      </div>
+                    )}
+                  </div>
+                  {errorEditar && (
+                    <p className="text-xs text-red-500 bg-red-500/10 border border-red-500/20 px-3 py-2 rounded-lg">{errorEditar}</p>
+                  )}
                   <div className="flex justify-end gap-3">
                     <button type="button" onClick={() => setEditandoServicio(null)}
                       className="px-4 py-2 rounded-lg border border-border text-muted-foreground hover:text-foreground text-sm transition-colors">
@@ -261,7 +295,9 @@ export default function DashboardEntidad() {
             )}
 
             {cargandoServicios ? (
-              <LoadingSpinner />
+              <div className="space-y-3">
+                {Array.from({ length: 4 }).map((_, i) => <ServicioCardSkeleton key={i} />)}
+              </div>
             ) : servicios.length === 0 ? (
               <EmptyState
                 title={t.dashEntidad.sinServicios}
@@ -332,17 +368,10 @@ export default function DashboardEntidad() {
                         labelDesactivar={t.dashAdmin.desactivar}
                         onClick={() => toggleActivo(s.id, !s.activo)}
                       />
-                      {confirmEliminar === s.id ? (
-                        <div className="flex items-center gap-1">
-                          <button onClick={() => setConfirmEliminar(null)} className="px-2 py-1.5 rounded-lg border border-border text-muted-foreground text-xs">{t.dashEntidad.no}</button>
-                          <button onClick={async () => { await eliminarServicio(s.id); setConfirmEliminar(null) }} className="px-2 py-1.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-500 text-xs">{t.dashEntidad.si}</button>
-                        </div>
-                      ) : (
-                        <button onClick={() => setConfirmEliminar(s.id)}
-                          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/25 transition-colors">
-                          {t.dashEntidad.eliminar}
-                        </button>
-                      )}
+                      <button onClick={() => setConfirmEliminar(s.id)}
+                        className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/25 transition-colors">
+                        {t.dashEntidad.eliminar}
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -375,7 +404,9 @@ export default function DashboardEntidad() {
             </div>
 
             {cargandoSolicitudes ? (
-              <LoadingSpinner />
+              <div className="space-y-3">
+                {Array.from({ length: 4 }).map((_, i) => <SolicitudCardSkeleton key={i} />)}
+              </div>
             ) : solicitudes.length === 0 ? (
               <EmptyState
                 title={t.dashEntidad.sinSolicitudes}
@@ -433,6 +464,34 @@ export default function DashboardEntidad() {
           </>
         )}
       </main>
+
+      {/* Modal confirmar eliminación */}
+      {confirmEliminar && (() => {
+        const servicio = servicios.find((s) => s.id === confirmEliminar)
+        return (
+          <Modal onClose={() => setConfirmEliminar(null)} maxWidth="max-w-sm">
+            <ModalHeader title={t.dashEntidad.confirmarEliminarTitulo} onClose={() => setConfirmEliminar(null)} />
+            {servicio && (
+              <p className="text-sm font-medium text-foreground mb-2">{servicio.nombre}</p>
+            )}
+            <p className="text-xs text-muted-foreground mb-6">{t.dashEntidad.confirmarEliminarDesc}</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setConfirmEliminar(null)}
+                className="flex-1 py-2.5 rounded-lg border border-border text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {t.dashEntidad.cancelar}
+              </button>
+              <button
+                onClick={async () => { await eliminarServicio(confirmEliminar); setConfirmEliminar(null) }}
+                className="flex-1 py-2.5 rounded-lg bg-red-500 hover:bg-red-400 text-white text-sm font-medium transition-colors"
+              >
+                {t.dashEntidad.eliminar}
+              </button>
+            </div>
+          </Modal>
+        )
+      })()}
 
       {/* Modal responder / modificar */}
       {solicitudActiva && (

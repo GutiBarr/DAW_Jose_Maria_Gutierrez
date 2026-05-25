@@ -4,6 +4,9 @@ import { createSolicitudRepository } from "@/database/repositories"
 
 const solicitudRepo = createSolicitudRepository()
 
+let cargarMisSolicitudesId     = 0
+let cargarSolicitudesEntidadId = 0
+
 interface SolicitudState {
   solicitudes: Solicitud[]
   cargando:    boolean
@@ -41,28 +44,34 @@ export const useSolicitudStore = create<SolicitudState>()((set, get) => ({
   },
 
   cargarMisSolicitudes: async () => {
+    const miId = ++cargarMisSolicitudesId
     set({ cargando: true, error: null })
     try {
       const solicitudes = await solicitudRepo.obtenerMisSolicitudes()
+      if (miId !== cargarMisSolicitudesId) return
       set({ solicitudes })
     } catch (e) {
+      if (miId !== cargarMisSolicitudesId) return
       console.error("cargarMisSolicitudes error:", e)
       set({ error: "Error al cargar las solicitudes" })
     } finally {
-      set({ cargando: false })
+      if (miId === cargarMisSolicitudesId) set({ cargando: false })
     }
   },
 
   cargarSolicitudesEntidad: async () => {
+    const miId = ++cargarSolicitudesEntidadId
     set({ cargando: true, error: null })
     try {
       const solicitudes = await solicitudRepo.obtenerSolicitudesEntidad()
+      if (miId !== cargarSolicitudesEntidadId) return
       set({ solicitudes })
     } catch (e) {
+      if (miId !== cargarSolicitudesEntidadId) return
       console.error("cargarSolicitudesEntidad error:", e)
       set({ error: "Error al cargar las solicitudes" })
     } finally {
-      set({ cargando: false })
+      if (miId === cargarSolicitudesEntidadId) set({ cargando: false })
     }
   },
 

@@ -1,6 +1,6 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
-import type { Usuario, DatosLogin, DatosRegistroFamilia, DatosRegistroEntidad } from "@/interfaces/Usuario"
+import type { Usuario, DatosLogin, DatosRegistroFamilia, DatosRegistroEntidad, RolUsuario } from "@/interfaces/Usuario"
 import { createAuthRepository } from "@/database/repositories"
 import { supabase } from "@/database/supabase/Client"
 import { usePerfilStore } from "@/store/perfilStore"
@@ -12,6 +12,7 @@ const authRepo = createAuthRepository()
 
 let cerrandoSesion = false
 let unsubscribeAuth: (() => void) | null = null
+let inicializando = false
 
 interface AuthState {
   usuario:      Usuario | null
@@ -36,67 +37,86 @@ function limpiarStores() {
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       usuario:      null,
       cargando:     false,
       inicializado: false,
 
       inicializar: async () => {
-        if (cerrandoSesion) return
+        if (cerrandoSesion || inicializando) return
+        inicializando = true
 
         if (unsubscribeAuth) {
           unsubscribeAuth()
           unsubscribeAuth = null
         }
 
-        const usuario = await authRepo.obtenerUsuarioActual()
+        try {
+          const usuarioObtenido = await authRepo.obtenerUsuarioActual()
 
-        if (usuario) {
-          const { data: perfil } = await supabase
-            .from("perfiles")
-            .select("activo")
-            .eq("id", usuario.id)
-            .single()
+          // Si mientras esperábamos el await un iniciarSesion ya estableció usuario,
+          // no sobreescribir con null — solo marcar como inicializado
+          if (!usuarioObtenido && get().usuario) {
+            set({ inicializado: true })
+          } else {
+            const usuario = usuarioObtenido
 
-          if (!perfil || !perfil.activo) {
-            cerrandoSesion = true
-            await supabase.auth.signOut({ scope: "local" })
-            cerrandoSesion = false
-            set({ usuario: null, inicializado: true })
-            return
+            if (usuario) {
+              const { data: perfil } = await supabase
+                .from("perfiles")
+                .select("activo")
+                .eq("id", usuario.id)
+                .single()
+
+              if (!perfil || !perfil.activo) {
+                cerrandoSesion = true
+                await supabase.auth.signOut({ scope: "local" })
+                cerrandoSesion = false
+                set({ usuario: null, inicializado: true })
+                return
+              }
+            }
+
+            set({ usuario, inicializado: true })
           }
+
+          const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            if (cerrandoSesion) return
+
+            // INITIAL_SESSION se dispara al suscribirse; el usuario ya fue cargado arriba
+            if (_event === "INITIAL_SESSION") return
+
+            if (_event === "SIGNED_OUT" || !session?.user) {
+              set({ usuario: null })
+              return
+            }
+
+            // SIGNED_IN desde otra pestaña o TOKEN_REFRESHED:
+            // si ya hay usuario en el store no hacemos nada (iniciarSesion/inicializar ya lo pusieron)
+            if (get().usuario) return
+
+            const u = session.user
+            const metadata = u.user_metadata ?? {}
+            set({
+              usuario: {
+                id:             u.id,
+                email:          u.email!,
+                rol:            (metadata.rol as RolUsuario) ?? "familia",
+                nombre:         metadata.nombre,
+                nombreEntidad:  metadata.nombreEntidad,
+                cif:            metadata.cif,
+                personaContacto: metadata.personaContacto,
+                telefono:       metadata.telefono,
+              },
+            })
+          })
+          unsubscribeAuth = () => subscription.unsubscribe()
+        } catch (e) {
+          console.error("inicializar error:", e)
+          set({ inicializado: true })
+        } finally {
+          inicializando = false
         }
-
-        set({ usuario, inicializado: true })
-
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-          if (cerrandoSesion) return
-
-          if (_event === "SIGNED_OUT" || !session) {
-            set({ usuario: null })
-            return
-          }
-
-          const u = await authRepo.obtenerUsuarioActual()
-          if (!u) { set({ usuario: null }); return }
-
-          const { data: perfil } = await supabase
-            .from("perfiles")
-            .select("activo")
-            .eq("id", u.id)
-            .single()
-
-          if (!perfil || !perfil.activo) {
-            cerrandoSesion = true
-            await supabase.auth.signOut({ scope: "local" })
-            cerrandoSesion = false
-            set({ usuario: null })
-            return
-          }
-
-          set({ usuario: u })
-        })
-        unsubscribeAuth = () => subscription.unsubscribe()
       },
 
       registrarFamilia: async (datos) => {

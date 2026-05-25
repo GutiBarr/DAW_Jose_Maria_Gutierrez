@@ -13,6 +13,7 @@ import DashboardHeader from "@/components/dashboard/DashboardHeader"
 import KpiCard from "@/components/dashboard/KpiCard"
 import TabBar from "@/components/dashboard/TabBar"
 import LoadingSpinner from "@/components/dashboard/LoadingSpinner"
+import { TableSkeleton } from "@/components/dashboard/Skeleton"
 import Modal from "@/components/dashboard/Modal"
 import StatusBadge from "@/components/dashboard/StatusBadge"
 import ToggleActivoButton from "@/components/dashboard/ToggleActivoButton"
@@ -228,7 +229,7 @@ export default function DashboardAdmin() {
         )}
 
         {cargando ? (
-          <LoadingSpinner />
+          <TableSkeleton cols={pestaña === "servicios" ? 4 : 5} rows={6} />
         ) : pestaña === "usuarios" ? (
           <DataTable<Perfil>
             data={perfilesFiltrados}

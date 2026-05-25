@@ -1,5 +1,11 @@
 import { useEffect } from "react"
-import { BrowserRouter, Routes, Route } from "react-router-dom"
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom"
+
+function ScrollToTop() {
+  const { pathname } = useLocation()
+  useEffect(() => { window.scrollTo(0, 0) }, [pathname])
+  return null
+}
 import { useAuthStore } from "@/store/authStore"
 import { useThemeStore } from "@/store/themeStore"
 
@@ -30,6 +36,12 @@ import DashboardAdmin     from "@/pages/admin/DashboardAdmin"
 // Perfil
 import Perfil from "@/pages/Perfil"
 
+// Legal
+import Privacidad     from "@/pages/legal/Privacidad"
+import Terminos       from "@/pages/legal/Terminos"
+import AccesibilidadPage from "@/pages/legal/Accesibilidad"
+import Cookies        from "@/pages/legal/Cookies"
+
 export default function App() {
   const { inicializar } = useAuthStore()
   const { aplicar } = useThemeStore()
@@ -41,11 +53,18 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
 
         {/* Pública */}
         <Route path="/" element={<Landing />} />
         <Route path="/catalogo" element={<CatalogoPage />} />
+
+        {/* Legal */}
+        <Route path="/legal/privacidad"    element={<Privacidad />} />
+        <Route path="/legal/terminos"      element={<Terminos />} />
+        <Route path="/legal/accesibilidad" element={<AccesibilidadPage />} />
+        <Route path="/legal/cookies"       element={<Cookies />} />
 
         {/* Recuperación de contraseña — siempre accesibles */}
         <Route path="/recuperar"      element={<RecuperarPassword />} />

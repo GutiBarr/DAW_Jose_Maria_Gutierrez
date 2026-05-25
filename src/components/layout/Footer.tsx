@@ -13,10 +13,10 @@ export default function Footer() {
       { label: t.footer.paraFamilias, href: "/registro/familia" },
     ],
     [t.footer.seccionLegal]: [
-      { label: t.footer.privacidad, href: "#" },
-      { label: t.footer.terminos, href: "#" },
-      { label: t.footer.accesibilidad, href: "#" },
-      { label: t.footer.cookies, href: "#" },
+      { label: t.footer.privacidad, href: "/legal/privacidad" },
+      { label: t.footer.terminos, href: "/legal/terminos" },
+      { label: t.footer.accesibilidad, href: "/legal/accesibilidad" },
+      { label: t.footer.cookies, href: "/legal/cookies" },
     ],
     [t.footer.seccionContacto]: [
       { label: "info@conciliaex.es", href: "mailto:info@conciliaex.es" },
@@ -53,12 +53,21 @@ export default function Footer() {
               <ul className="space-y-2.5">
                 {items.map((item) => (
                   <li key={item.label}>
-                    <a
-                      href={item.href}
-                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      {item.label}
-                    </a>
+                    {item.href.startsWith("/") ? (
+                      <Link
+                        to={item.href}
+                        className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        {item.label}
+                      </Link>
+                    ) : (
+                      <a
+                        href={item.href}
+                        className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        {item.label}
+                      </a>
+                    )}
                   </li>
                 ))}
               </ul>

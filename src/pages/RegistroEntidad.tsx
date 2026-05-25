@@ -2,6 +2,7 @@ import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { useAuthStore } from "@/store/authStore"
 import { useT } from "@/i18n/useT"
+import { esTelefonoValido } from "@/lib/validaciones"
 
 export default function RegistroEntidad() {
   const navigate = useNavigate()
@@ -24,6 +25,7 @@ export default function RegistroEntidad() {
     e.preventDefault()
     if (form.password !== form.confirmar) return setError(t.registroEntidad.errPassNoCoinciden)
     if (form.password.length < 6) return setError(t.registroEntidad.errPassCorta)
+    if (!esTelefonoValido(form.telefono)) return setError(t.registroEntidad.errTelefono)
     if (!form.terminos) return setError(t.registroEntidad.errTerminos)
     const { error } = await registrarEntidad({
       nombreEntidad: form.nombreEntidad, cif: form.cif,
@@ -161,9 +163,9 @@ export default function RegistroEntidad() {
                 className="mt-0.5 w-4 h-4 rounded border-border bg-input accent-emerald-500 cursor-pointer" />
               <label htmlFor="terminos" className="text-xs text-muted-foreground cursor-pointer leading-relaxed">
                 {t.registroEntidad.acepto}{" "}
-                <a href="#" className="text-emerald-500 hover:underline">{t.registroEntidad.terminos}</a>{" "}
+                <a href="/legal/terminos" target="_blank" rel="noopener noreferrer" className="text-emerald-500 hover:underline">{t.registroEntidad.terminos}</a>{" "}
                 {t.registroEntidad.y}{" "}
-                <a href="#" className="text-emerald-500 hover:underline">{t.registroEntidad.privacidad}</a>
+                <a href="/legal/privacidad" target="_blank" rel="noopener noreferrer" className="text-emerald-500 hover:underline">{t.registroEntidad.privacidad}</a>
               </label>
             </div>
 
