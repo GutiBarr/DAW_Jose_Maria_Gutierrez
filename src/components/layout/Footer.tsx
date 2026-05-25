@@ -19,8 +19,8 @@ export default function Footer() {
       { label: t.footer.cookies, href: "/legal/cookies" },
     ],
     [t.footer.seccionContacto]: [
-      { label: "info@conciliaex.es", href: "mailto:info@conciliaex.es" },
-      { label: "924 000 000", href: "tel:924000000" },
+      { label: "conciliaex@gmail.com", href: "mailto:conciliaex@gmail.com" },
+      { label: "619 404 444", href: "tel:619404444" },
       { label: "Mérida, Extremadura", href: "#" },
     ],
   }
@@ -78,7 +78,7 @@ export default function Footer() {
         {/* Bottom */}
         <div className="border-t border-border pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-muted-foreground/60">
-            © {new Date().getFullYear()} ConciliaEx. {t.footer.derechos}
+            © {new Date().getFullYear()} ConciliaEx
           </p>
           <p className="text-xs text-muted-foreground/60">
             {t.footer.proyecto}

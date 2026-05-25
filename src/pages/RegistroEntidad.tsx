@@ -43,31 +43,33 @@ export default function RegistroEntidad() {
   return (
     <div className="min-h-screen bg-background flex">
       {/* Left */}
-      <div className="hidden lg:flex w-[380px] bg-card border-r border-border flex-col px-10 py-10">
-        <Link to="/registro" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm mb-auto">
+      <div className="hidden lg:flex w-[380px] bg-card border-r border-border flex-col px-10 py-10 sticky top-0 h-screen">
+        <Link to="/registro" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
             <path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
           {t.registroEntidad.volver}
         </Link>
 
-        <div className="py-14">
-          <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center mb-6">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <rect x="3" y="8" width="14" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.5"/>
-              <path d="M7 8V6a3 3 0 016 0v2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-              <circle cx="10" cy="13" r="1.5" stroke="currentColor" strokeWidth="1.2"/>
-            </svg>
+        <div className="flex-1 flex items-center">
+          <div>
+            <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center mb-6">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <rect x="3" y="8" width="14" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.5"/>
+                <path d="M7 8V6a3 3 0 016 0v2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                <circle cx="10" cy="13" r="1.5" stroke="currentColor" strokeWidth="1.2"/>
+              </svg>
+            </div>
+            <p className="text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-3">
+              {t.registroEntidad.etiqueta}
+            </p>
+            <h2 className="text-3xl font-semibold text-foreground leading-snug mb-4">
+              {t.registroEntidad.titulo}
+            </h2>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {t.registroEntidad.descripcion}
+            </p>
           </div>
-          <p className="text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-3">
-            {t.registroEntidad.etiqueta}
-          </p>
-          <h2 className="text-3xl font-semibold text-foreground leading-snug mb-4">
-            {t.registroEntidad.titulo}
-          </h2>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            {t.registroEntidad.descripcion}
-          </p>
         </div>
 
         <p className="text-xs text-muted-foreground/40">© {new Date().getFullYear()} ConciliaEx</p>

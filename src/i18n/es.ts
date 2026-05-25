@@ -170,9 +170,9 @@ export const es: Translations = {
     ctaCuenta: "Crear cuenta gratis",
     stat1Value: "+200",
     stat1Label: "servicios disponibles",
-    stat2Value: "180+",
+    stat2Value: "80+",
     stat2Label: "entidades colaboradoras",
-    stat3Value: "2.400+",
+    stat3Value: "600+",
     stat3Label: "familias registradas",
   },
 

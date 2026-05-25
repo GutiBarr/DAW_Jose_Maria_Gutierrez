@@ -27,9 +27,9 @@ export const en: Translations = {
     ctaCuenta: "Create free account",
     stat1Value: "+200",
     stat1Label: "available services",
-    stat2Value: "180+",
+    stat2Value: "80+",
     stat2Label: "partner entities",
-    stat3Value: "2,400+",
+    stat3Value: "600+",
     stat3Label: "registered families",
   },
 
