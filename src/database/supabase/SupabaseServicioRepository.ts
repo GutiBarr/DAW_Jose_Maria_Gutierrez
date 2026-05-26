@@ -24,9 +24,13 @@ export class SupabaseServicioRepository implements ServicioRepository {
   }
 
   async obtenerMisServicios(): Promise<Servicio[]> {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return []
+
     const { data, error } = await supabase
       .from("servicios")
       .select("*")
+      .eq("entidad_id", user.id)
       .order("created_at", { ascending: false })
 
     if (error) {
@@ -63,7 +67,27 @@ export class SupabaseServicioRepository implements ServicioRepository {
       return []
     }
 
-    return data as Servicio[]
+    const servicios = data as Servicio[]
+
+    // Enriquecer con datos de la entidad publicadora
+    const entidadIds = [...new Set(servicios.map((s) => s.entidad_id))]
+    if (entidadIds.length === 0) return servicios
+
+    const { data: perfiles } = await supabase
+      .from("perfiles")
+      .select("id, nombre_entidad, avatar_url")
+      .in("id", entidadIds)
+
+    if (!perfiles) return servicios
+
+    const perfilesMap = Object.fromEntries(perfiles.map((p) => [p.id, p]))
+
+    return servicios.map((s) => ({
+      ...s,
+      perfiles: perfilesMap[s.entidad_id]
+        ? { nombre_entidad: perfilesMap[s.entidad_id].nombre_entidad, avatar_url: perfilesMap[s.entidad_id].avatar_url }
+        : undefined,
+    }))
   }
 
   async crearServicio(datos: DatosCrearServicio) {

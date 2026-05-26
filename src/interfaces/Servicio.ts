@@ -24,6 +24,10 @@ export interface Servicio {
   consultas:   number
   created_at:  string
   updated_at:  string
+  perfiles?: {
+    nombre_entidad?: string
+    avatar_url?:     string
+  }
 }
 
 export interface DatosCrearServicio {

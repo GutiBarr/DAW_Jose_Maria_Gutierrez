@@ -244,6 +244,19 @@ export default function Catalogo({ variante = "full" }: { variante?: "landing" |
                         {t.catalogo.solicitarPlaza}
                       </button>
                     </div>
+
+                    {s.perfiles?.nombre_entidad && (
+                      <div className="flex items-center gap-2 pt-3 mt-1 border-t border-border">
+                        {s.perfiles.avatar_url ? (
+                          <img src={s.perfiles.avatar_url} alt={s.perfiles.nombre_entidad} className="w-5 h-5 rounded-full object-cover shrink-0" />
+                        ) : (
+                          <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center shrink-0">
+                            <span className="text-[9px] font-bold text-muted-foreground uppercase">{s.perfiles.nombre_entidad[0]}</span>
+                          </div>
+                        )}
+                        <span className="text-xs text-muted-foreground truncate">{s.perfiles.nombre_entidad}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -323,9 +336,23 @@ export default function Catalogo({ variante = "full" }: { variante?: "landing" |
                   </svg>
                 </button>
               </div>
-              <span className="inline-block text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 font-medium mb-3">
-                {detalle.tipo}
-              </span>
+              <div className="flex items-center gap-3 mb-3">
+                <span className="inline-block text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 font-medium">
+                  {detalle.tipo}
+                </span>
+                {detalle.perfiles?.nombre_entidad && (
+                  <div className="flex items-center gap-1.5">
+                    {detalle.perfiles.avatar_url ? (
+                      <img src={detalle.perfiles.avatar_url} alt={detalle.perfiles.nombre_entidad} className="w-5 h-5 rounded-full object-cover" />
+                    ) : (
+                      <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center">
+                        <span className="text-[9px] font-bold text-muted-foreground uppercase">{detalle.perfiles.nombre_entidad[0]}</span>
+                      </div>
+                    )}
+                    <span className="text-xs text-muted-foreground">{detalle.perfiles.nombre_entidad}</span>
+                  </div>
+                )}
+              </div>
               <p className="text-sm text-muted-foreground leading-relaxed mb-5">{detalle.descripcion}</p>
               <div className="space-y-2 text-sm text-muted-foreground border-t border-border pt-4 mb-5">
                 <div className="flex items-center gap-2">
