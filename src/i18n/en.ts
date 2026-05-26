@@ -185,10 +185,11 @@ export const en: Translations = {
     creando: "Creating account...",
     ver: "Show",
     ocultar: "Hide",
+    errNombre: "Name must be at least 2 characters",
+    errEmail: "Enter a valid email address",
     errPassNoCoinciden: "Passwords do not match",
     errPassCorta: "Password must be at least 6 characters",
     errTerminos: "You must accept the terms and conditions",
-    errTelefono: "Invalid phone number. Must be 9 digits starting with 6, 7, 8 or 9",
   },
 
   // Registro entidad
@@ -221,6 +222,10 @@ export const en: Translations = {
     registrando: "Creating account...",
     ver: "Show",
     ocultar: "Hide",
+    errNombreEntidad: "Name must be at least 2 characters",
+    errCif: "Invalid CIF. Format: letter + 7 digits + letter or digit (e.g. G12345678)",
+    errNombreContacto: "Name must be at least 2 characters",
+    errEmail: "Enter a valid email address",
     errPassNoCoinciden: "Passwords do not match",
     errPassCorta: "Password must be at least 6 characters",
     errTerminos: "You must accept the terms and conditions",

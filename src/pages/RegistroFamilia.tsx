@@ -2,6 +2,10 @@ import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { useAuthStore } from "@/store/authStore"
 import { useT } from "@/i18n/useT"
+import { esEmailValido } from "@/lib/validaciones"
+
+type Errors = { nombre: string; email: string; password: string; confirmar: string; terminos: string; global: string }
+const emptyErrors = (): Errors => ({ nombre: "", email: "", password: "", confirmar: "", terminos: "", global: "" })
 
 export default function RegistroFamilia() {
   const navigate = useNavigate()
@@ -12,24 +16,30 @@ export default function RegistroFamilia() {
   const [form, setForm] = useState({
     nombre: "", email: "", password: "", confirmar: "", terminos: false,
   })
-  const [error, setError] = useState("")
+  const [errors, setErrors] = useState<Errors>(emptyErrors())
 
   const set = (k: string, v: string | boolean) => {
-    setForm({ ...form, [k]: v })
-    setError("")
+    setForm(f => ({ ...f, [k]: v }))
+    setErrors(e => ({ ...e, [k]: "", global: "" }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (form.password !== form.confirmar) return setError(t.registroFamilia.errPassNoCoinciden)
-    if (form.password.length < 6) return setError(t.registroFamilia.errPassCorta)
-    if (!form.terminos) return setError(t.registroFamilia.errTerminos)
+    const errs = emptyErrors()
+    if (form.nombre.trim().length < 2)       errs.nombre   = t.registroFamilia.errNombre
+    if (!esEmailValido(form.email))           errs.email    = t.registroFamilia.errEmail
+    if (form.password.length < 6)            errs.password = t.registroFamilia.errPassCorta
+    if (form.password !== form.confirmar)    errs.confirmar = t.registroFamilia.errPassNoCoinciden
+    if (!form.terminos)                      errs.terminos  = t.registroFamilia.errTerminos
+    if (Object.values(errs).some(Boolean)) { setErrors(errs); return }
+
     const { error } = await registrarFamilia({ nombre: form.nombre, email: form.email, password: form.password })
-    if (error) return setError(error)
+    if (error) { setErrors(e => ({ ...e, global: error })); return }
     navigate("/familia/dashboard")
   }
 
-  const inputClass = "w-full h-10 px-3 rounded-lg border border-border bg-input text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
+  const inputCls = (err: string) =>
+    `w-full h-10 px-3 rounded-lg border ${err ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : "border-border focus:border-emerald-500 focus:ring-emerald-500/20"} bg-input text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 transition-colors`
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -80,62 +90,69 @@ export default function RegistroFamilia() {
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">{t.registroFamilia.nombre}</label>
               <input type="text" placeholder="María García López"
-                value={form.nombre} onChange={(e) => set("nombre", e.target.value)} required
-                className={inputClass} />
+                value={form.nombre} onChange={(e) => set("nombre", e.target.value)}
+                className={inputCls(errors.nombre)} />
+              {errors.nombre && <p className="text-xs text-red-500">{errors.nombre}</p>}
             </div>
 
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">{t.registroFamilia.email}</label>
-              <input type="email" placeholder="tu@email.com"
-                value={form.email} onChange={(e) => set("email", e.target.value)} required
-                className={inputClass} />
+              <input type="text" placeholder="tu@email.com"
+                value={form.email} onChange={(e) => set("email", e.target.value)}
+                className={inputCls(errors.email)} />
+              {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
             </div>
 
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">{t.registroFamilia.password}</label>
               <div className="relative">
                 <input type={showPass ? "text" : "password"} placeholder={t.registroFamilia.passwordPlaceholder}
-                  value={form.password} onChange={(e) => set("password", e.target.value)} required
-                  className={`${inputClass} pr-16`} />
+                  value={form.password} onChange={(e) => set("password", e.target.value)}
+                  className={`${inputCls(errors.password)} pr-16`} />
                 <button type="button" onClick={() => setShowPass(!showPass)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-xs transition-colors">
                   {showPass ? t.registroFamilia.ocultar : t.registroFamilia.ver}
                 </button>
               </div>
+              {errors.password && <p className="text-xs text-red-500">{errors.password}</p>}
             </div>
 
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">{t.registroFamilia.confirmar}</label>
               <div className="relative">
                 <input type={showConfirm ? "text" : "password"} placeholder={t.registroFamilia.confirmarPlaceholder}
-                  value={form.confirmar} onChange={(e) => set("confirmar", e.target.value)} required
-                  className={`${inputClass} pr-16`} />
+                  value={form.confirmar} onChange={(e) => set("confirmar", e.target.value)}
+                  className={`${inputCls(errors.confirmar)} pr-16`} />
                 <button type="button" onClick={() => setShowConfirm(!showConfirm)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-xs transition-colors">
                   {showConfirm ? t.registroFamilia.ocultar : t.registroFamilia.ver}
                 </button>
               </div>
+              {errors.confirmar && <p className="text-xs text-red-500">{errors.confirmar}</p>}
             </div>
 
-            <div className="flex items-start gap-2.5 pt-1">
-              <input type="checkbox" id="terminos"
-                checked={form.terminos} onChange={(e) => set("terminos", e.target.checked)}
-                className="mt-0.5 w-4 h-4 rounded border-border bg-input accent-emerald-500 cursor-pointer" />
-              <label htmlFor="terminos" className="text-xs text-muted-foreground cursor-pointer leading-relaxed">
-                {t.registroFamilia.acepto}{" "}
-                <a href="/legal/terminos" target="_blank" rel="noopener noreferrer" className="text-emerald-500 hover:underline">{t.registroFamilia.terminos}</a>{" "}
-                {t.registroFamilia.y}{" "}
-                <a href="/legal/privacidad" target="_blank" rel="noopener noreferrer" className="text-emerald-500 hover:underline">{t.registroFamilia.privacidad}</a>
-              </label>
+            <div className="space-y-1.5 pt-1">
+              <div className="flex items-start gap-2.5">
+                <input type="checkbox" id="terminos"
+                  checked={form.terminos} onChange={(e) => set("terminos", e.target.checked)}
+                  className="mt-0.5 w-4 h-4 rounded border-border bg-input accent-emerald-500 cursor-pointer" />
+                <label htmlFor="terminos" className="text-xs text-muted-foreground cursor-pointer leading-relaxed">
+                  {t.registroFamilia.acepto}{" "}
+                  <a href="/legal/terminos" target="_blank" rel="noopener noreferrer" className="text-emerald-500 hover:underline">{t.registroFamilia.terminos}</a>{" "}
+                  {t.registroFamilia.y}{" "}
+                  <a href="/legal/privacidad" target="_blank" rel="noopener noreferrer" className="text-emerald-500 hover:underline">{t.registroFamilia.privacidad}</a>
+                </label>
+              </div>
+              {errors.terminos && <p className="text-xs text-red-500">{errors.terminos}</p>}
             </div>
 
-            {error && (
+            {errors.global && (
               <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 text-red-500 text-xs p-3 rounded-lg">
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                   <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.2"/>
                   <path d="M6 4v2.5M6 8v.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
                 </svg>
-                {error}
+                {errors.global}
               </div>
             )}
 
