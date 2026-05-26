@@ -183,7 +183,7 @@ export default function DashboardFamilia() {
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">{t.dashFamilia.entidad}</span>
+              <span className="text-muted-foreground">{t.dashFamilia.familiar}</span>
               <span className="text-foreground">{detalle.nombre_familiar}</span>
             </div>
             <div className="flex justify-between">

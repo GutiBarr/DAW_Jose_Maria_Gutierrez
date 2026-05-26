@@ -80,7 +80,7 @@ export interface Translations {
     bienvenido: string; resumen: string; pendientes: string; aceptadas: string
     rechazadas: string; total: string; misSolicitudes: string; explorar: string
     sinSolicitudes: string; sinSolicitudesSub: string; estado: string; fecha: string
-    servicio: string; entidad: string; mensaje: string; verDetalle: string
+    servicio: string; entidad: string; familiar: string; mensaje: string; verDetalle: string
     pendienteLabel: string; aceptadaLabel: string; rechazadaLabel: string
     buscar: string; todosEstados: string; noSolicitudes: string; noFiltros: string
   }
@@ -430,6 +430,7 @@ export const es: Translations = {
     fecha: "Fecha",
     servicio: "Servicio",
     entidad: "Entidad",
+    familiar: "Familiar",
     mensaje: "Mensaje",
     verDetalle: "Ver detalle",
     pendienteLabel: "Pendiente",

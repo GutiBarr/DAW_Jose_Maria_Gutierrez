@@ -286,6 +286,7 @@ export const en: Translations = {
     fecha: "Date",
     servicio: "Service",
     entidad: "Entity",
+    familiar: "Family member",
     mensaje: "Message",
     verDetalle: "View details",
     pendienteLabel: "Pending",
