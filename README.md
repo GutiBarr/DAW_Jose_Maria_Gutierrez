@@ -229,7 +229,7 @@ La carpeta `/Documentacion` contiene los manuales completos del proyecto:
 | [Manual de Usuario](./Documentacion/Manual_Usuario_ConciliaEx.pdf) | Guía de uso para familias, entidades y administradores |
 | [Manual Técnico](./Documentacion/Manual_Tecnico_ConciliaEx.pdf) | Arquitectura, modelo de datos, autenticación y decisiones de diseño |
 | [Manual de Despliegue](./Documentacion/Manual_Despliegue_ConciliaEx.pdf) | Pasos para desplegar en Vercel/Netlify con Supabase como backend |
-| [Manual del Proyecto](./Documentacion/Manual_Proyecto_ConciliaEx.pdf) | Contexto académico, evolución y planificación del proyecto |
+
 
 ---
 
