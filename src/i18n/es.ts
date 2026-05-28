@@ -18,6 +18,7 @@ export interface Translations {
     etiqueta: string; titulo: string; descripcion: string
     filtroNombre: string; filtroNombrePlaceholder: string; filtroTipo: string
     filtroTipoTodos: string; filtroUbicacion: string; filtroUbicacionPlaceholder: string
+    filtroEntidad: string; filtroEntidadTodas: string
     limpiarFiltros: string; buscar: string; buscando: string
     sinResultados: string; sinResultadosSub: string; resultados: (n: number) => string
     verDetalle: string; solicitarPlaza: string; ctaEntidad: string; ctaEntidadBtn: string
@@ -110,7 +111,7 @@ export interface Translations {
     activo: string; inactivo: string; pendiente: string; aprobado: string; sinDatos: string
     nombre: string; email: string; rol: string; estado: string; acciones: string
     cancelar: string; eliminar: string; familias: string; tu: string; tuCuenta: string
-    descripcion: string; todosRoles: string; todosEstados: string; todosTipos: string
+    descripcion: string; todosRoles: string; todosEstados: string; todosTipos: string; todasEntidades: string
     buscarUsuarios: string; buscarServicios: string
     eliminarCuenta: string; desactivarCuenta: string; eliminarServicio: string
     confirmarEliminarCuenta: (nombre: string) => string
@@ -219,6 +220,8 @@ export const es: Translations = {
     filtroTipoTodos: "Todos los tipos",
     filtroUbicacion: "Ubicación",
     filtroUbicacionPlaceholder: "Ciudad o provincia...",
+    filtroEntidad: "Entidad",
+    filtroEntidadTodas: "Todas las entidades",
     limpiarFiltros: "Limpiar filtros",
     buscar: "Buscar",
     buscando: "Buscando servicios...",
@@ -531,6 +534,7 @@ export const es: Translations = {
     todosRoles: "Todos los roles",
     todosEstados: "Todos los estados",
     todosTipos: "Todos los tipos",
+    todasEntidades: "Todas las entidades",
     buscarUsuarios: "Buscar por nombre o email...",
     buscarServicios: "Buscar por nombre o ubicación...",
     eliminarCuenta: "Eliminar cuenta",

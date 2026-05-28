@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
 import { useAuthStore } from "@/store/authStore"
 import { useAdminStore } from "@/store/adminStore"
 import { usePerfilStore } from "@/store/perfilStore"
@@ -49,6 +49,7 @@ export default function DashboardAdmin() {
     busquedaServicios,     setBusquedaServicios,
     filtroTipo,            setFiltroTipo,
     filtroActivoServicios, setFiltroActivoServicios,
+    filtroEntidad,         setFiltroEntidad,
     serviciosFiltrados,
   } = useAdminFiltros(perfiles, servicios)
 
@@ -59,6 +60,11 @@ export default function DashboardAdmin() {
       cargarPerfil()
     }
   }, [usuario?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const entidadNombre = useMemo(() =>
+    Object.fromEntries(perfiles.map((p) => [p.id, p.nombre_entidad ?? p.nombre ?? p.email])),
+    [perfiles]
+  )
 
   const totalFamilias  = perfiles.filter((p) => p.rol === "familia").length
   const totalEntidades = perfiles.filter((p) => p.rol === "entidad").length
@@ -205,15 +211,21 @@ export default function DashboardAdmin() {
 
         {/* Filtros servicios */}
         {pestaña === "servicios" && (
-          <div className="flex flex-col sm:flex-row gap-2 mb-4">
+          <div className="flex flex-col sm:flex-row gap-2 mb-4 flex-wrap">
             <input
               type="text"
               placeholder={t.dashAdmin.buscarServicios}
               value={busquedaServicios}
               onChange={(e) => setBusquedaServicios(e.target.value)}
-              className={`${inputClass} sm:w-64`}
+              className={`${inputClass} sm:w-56`}
             />
-            <select value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)} className={`${inputClass} sm:w-48`}>
+            <select value={filtroEntidad} onChange={(e) => setFiltroEntidad(e.target.value)} className={`${inputClass} sm:w-48`}>
+              <option value="todos">{t.dashAdmin.todasEntidades}</option>
+              {perfiles.filter((p) => p.rol === "entidad").map((p) => (
+                <option key={p.id} value={p.id}>{p.nombre_entidad ?? p.email}</option>
+              ))}
+            </select>
+            <select value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)} className={`${inputClass} sm:w-44`}>
               <option value="todos">{t.dashAdmin.todosTipos}</option>
               {TIPOS_SERVICIO.map((tp) => <option key={tp} value={tp}>{tp}</option>)}
             </select>
@@ -329,6 +341,14 @@ export default function DashboardAdmin() {
                 render: (s) => (
                   <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 font-medium">
                     {s.tipo}
+                  </span>
+                ),
+              },
+              {
+                key: "entidad", header: t.dashFamilia.entidad,
+                render: (s) => (
+                  <span className="text-xs text-muted-foreground truncate max-w-[160px] block">
+                    {entidadNombre[s.entidad_id] ?? "—"}
                   </span>
                 ),
               },

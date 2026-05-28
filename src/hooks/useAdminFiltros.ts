@@ -11,6 +11,7 @@ export function useAdminFiltros(perfiles: Perfil[], servicios: Servicio[]) {
   const [busquedaServicios,      setBusquedaServicios]      = useState("")
   const [filtroTipo,             setFiltroTipo]             = useState("todos")
   const [filtroActivoServicios,  setFiltroActivoServicios]  = useState<"todos" | "activo" | "inactivo">("todos")
+  const [filtroEntidad,          setFiltroEntidad]          = useState("todos")
 
   const perfilesFiltrados = perfiles.filter((p) => {
     const texto = busquedaUsuarios.toLowerCase()
@@ -25,16 +26,22 @@ export function useAdminFiltros(perfiles: Perfil[], servicios: Servicio[]) {
     return coincideTexto && coincideRol && coincideActivo
   })
 
+  const entidadNombreMap = Object.fromEntries(
+    perfiles.map((p) => [p.id, (p.nombre_entidad ?? p.nombre ?? p.email).toLowerCase()])
+  )
+
   const serviciosFiltrados = servicios.filter((s) => {
     const texto = busquedaServicios.toLowerCase()
     const coincideTexto =
       !texto ||
       s.nombre.toLowerCase().includes(texto) ||
-      (s.ubicacion ?? "").toLowerCase().includes(texto)
-    const coincideTipo   = filtroTipo           === "todos" || s.tipo === filtroTipo
-    const coincideActivo = filtroActivoServicios === "todos" ||
+      (s.ubicacion ?? "").toLowerCase().includes(texto) ||
+      (entidadNombreMap[s.entidad_id] ?? "").includes(texto)
+    const coincideTipo    = filtroTipo           === "todos" || s.tipo === filtroTipo
+    const coincideActivo  = filtroActivoServicios === "todos" ||
       (filtroActivoServicios === "activo" ? s.activo : !s.activo)
-    return coincideTexto && coincideTipo && coincideActivo
+    const coincideEntidad = filtroEntidad === "todos" || s.entidad_id === filtroEntidad
+    return coincideTexto && coincideTipo && coincideActivo && coincideEntidad
   })
 
   return {
@@ -46,6 +53,7 @@ export function useAdminFiltros(perfiles: Perfil[], servicios: Servicio[]) {
     busquedaServicios,     setBusquedaServicios,
     filtroTipo,            setFiltroTipo,
     filtroActivoServicios, setFiltroActivoServicios,
+    filtroEntidad,         setFiltroEntidad,
     serviciosFiltrados,
   }
 }

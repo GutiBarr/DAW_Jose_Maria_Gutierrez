@@ -22,16 +22,16 @@ export default function Catalogo({ variante = "full" }: { variante?: "landing" |
   // Carga inicial
   useEffect(() => { buscarServicios({}) }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Búsqueda automática con debounce al escribir
+  // Debounce solo para tipo y ubicación (nombre se filtra client-side para cubrir entidad también)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const triggerBusqueda = (n: string, tp: TipoServicio | "", ub: string) => {
+  const triggerBusqueda = (tp: TipoServicio | "", ub: string) => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
-    debounceRef.current = setTimeout(() => buscarServicios({ nombre: n, tipo: tp, ubicacion: ub }), 400)
+    debounceRef.current = setTimeout(() => buscarServicios({ tipo: tp, ubicacion: ub }), 400)
   }
 
-  const handleNombre    = (v: string) => { setNombre(v); triggerBusqueda(v, tipo, ubicacion) }
-  const handleTipo      = (v: TipoServicio | "") => { setTipo(v); triggerBusqueda(nombre, v, ubicacion) }
-  const handleUbicacion = (v: string) => { setUbicacion(v); triggerBusqueda(nombre, tipo, v) }
+  const handleNombre    = (v: string) => { setNombre(v) }
+  const handleTipo      = (v: TipoServicio | "") => { setTipo(v); triggerBusqueda(v, ubicacion) }
+  const handleUbicacion = (v: string) => { setUbicacion(v); triggerBusqueda(tipo, v) }
 
   // Cerrar modal con Escape
   useEffect(() => {
@@ -42,14 +42,18 @@ export default function Catalogo({ variante = "full" }: { variante?: "landing" |
 
   const handleBuscar = (e: React.FormEvent) => {
     e.preventDefault()
-    buscarServicios({ nombre, tipo, ubicacion })
+    buscarServicios({ tipo, ubicacion })
   }
 
   const serviciosAMostrar = useMemo(() => {
-    if (variante === "full") return resultados
-    // En landing mostramos 3 random
-    return [...resultados].sort(() => 0.5 - Math.random()).slice(0, 3)
-  }, [resultados, variante])
+    const base = variante === "full" ? resultados : [...resultados].sort(() => 0.5 - Math.random()).slice(0, 3)
+    if (!nombre.trim()) return base
+    const txt = nombre.toLowerCase()
+    return base.filter((s) =>
+      s.nombre.toLowerCase().includes(txt) ||
+      (s.perfiles?.nombre_entidad ?? "").toLowerCase().includes(txt)
+    )
+  }, [resultados, variante, nombre])
 
   const handleLimpiar = () => {
     setNombre("")
