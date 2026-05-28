@@ -226,10 +226,10 @@ La carpeta `/Documentacion` contiene los manuales completos del proyecto:
 
 | Documento | Descripción |
 |---|---|
-| [Manual de Usuario](./Documentacion/Manual_Usuario.md) | Guía de uso para familias, entidades y administradores |
-| [Manual Técnico](./Documentacion/Manual_Tecnico.md) | Arquitectura, modelo de datos, autenticación y decisiones de diseño |
-| [Manual de Despliegue](./Documentacion/Manual_Despliegue.md) | Pasos para desplegar en Vercel/Netlify con Supabase como backend |
-| [Manual del Proyecto](./Documentacion/Manual_Proyecto.md) | Contexto académico, evolución y planificación del proyecto |
+| [Manual de Usuario](./Documentacion/Manual_Usuario.ConciliaEx.pdf) | Guía de uso para familias, entidades y administradores |
+| [Manual Técnico](./Documentacion/Manual_Tecnico.ConciliaEx.pdf) | Arquitectura, modelo de datos, autenticación y decisiones de diseño |
+| [Manual de Despliegue](./Documentacion/Manual_Despliegue.ConciliaEx.pdf) | Pasos para desplegar en Vercel/Netlify con Supabase como backend |
+| [Manual del Proyecto](./Documentacion/Manual_Proyecto.ConciliaEx.pdf) | Contexto académico, evolución y planificación del proyecto |
 
 ---
 
