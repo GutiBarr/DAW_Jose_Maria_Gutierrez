@@ -235,7 +235,7 @@ La carpeta `/Documentacion` contiene los manuales completos del proyecto:
 
 ## Autor
 
-**José María Gutiérrez Barrero**
+**José María Gutiérrez Barrena**
 Ciclo Formativo de Grado Superior — Desarrollo de Aplicaciones Web
 IES Albarregas · Mérida, Extremadura
 
