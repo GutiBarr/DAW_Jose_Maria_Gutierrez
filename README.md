@@ -23,7 +23,7 @@ Proyecto intermodular de fin de ciclo — DAW · IES Albarregas · José María 
 
 ## 📖 Descripción
 
-ConciliaEx es una SPA (Single Page Application) que facilita la búsqueda, gestión y solicitud de servicios de conciliación familiar. La plataforma centraliza la oferta de entidades colaboradoras y permite a las familias encontrar y solicitar plazas de manera sencilla, con un panel de administración completo para la gestión global de usuarios y servicios.
+ConciliaEx es una plataforma web que facilita la búsqueda, gestión y solicitud de servicios de conciliación familiar. La plataforma centraliza la oferta de entidades colaboradoras y permite a las familias encontrar y solicitar plazas de manera sencilla, con un panel de administración completo para la gestión global de usuarios y servicios.
 
 ---
 
