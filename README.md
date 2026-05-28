@@ -2,7 +2,7 @@
 
 Plataforma web que conecta a familias con personas dependientes con entidades especializadas en servicios de conciliación familiar en Extremadura.
 
-Proyecto intermodular de fin de ciclo — DAW · IES Albarregas · José María Gutiérrez Barrero
+Proyecto intermodular de fin de ciclo — DAW · IES Albarregas · José María Gutiérrez Barrena
 
 ---
 
